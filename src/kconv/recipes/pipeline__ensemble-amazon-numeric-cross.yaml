@@ -1,0 +1,41 @@
+id: pipeline/ensemble-amazon-numeric-cross
+kind: pipeline
+derived_from: ensemble-amazon/stacking
+title: ensemble_amazon numeric/cross stack pipeline
+author: kaz-Anova
+source: https://github.com/kaz-Anova/ensemble_amazon
+license: Apache-2.0
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Diverse GBDT/linear members with numeric products/ratios and frequency-encoded categorical crosses before OOF meta-stacking."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, xgb, catboost, logreg]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+    meta_model: auto
+    meta_splits: 5
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: numeric_interactions
+      params: {columns: auto, max_pairs: 8, operations: [product, ratio]}
+    - type: categorical_interaction
+      params: {columns: auto, max_pairs: 4, encoding: frequency}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Weighted/rank averaging and meta-stacking ideas from ensemble_amazon (Apache-2.0); numeric/categorical interaction blocks and kconv adapters are original, no source code copied."

@@ -1,0 +1,30 @@
+id: pipeline/kaggler-target-frequency
+kind: pipeline
+derived_from: kaggler/target-encoding
+title: Kaggler target/frequency pipeline
+author: Jeong-Yoon Lee
+source: https://github.com/jeongyoonlee/Kaggler
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Explicit target and frequency encoding with GBDT models; useful for high-cardinality categorical data."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+attribution: "Target/frequency encoding methodology adapted from Kaggler (MIT); kconv uses inner-OOF target encoding."

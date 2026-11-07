@@ -1,0 +1,37 @@
+id: knnfeat/knn-features
+kind: preset
+title: knnFeat class-distance features
+author: Shotaro Ishihara (upura)
+source: https://github.com/upura/knnFeat
+license: MIT
+group: engineering
+tasks: [binary, multiclass]
+best_for: "Small/medium classification datasets with numeric features where local class geometry matters."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    auto_encode: true
+    scale: auto
+    impute: median
+    drop_constant: true
+    knn_features:
+      enabled: true
+      neighbors: 3
+      folds: 5
+      metric: euclidean
+  models: [lgbm, xgb]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+attribution: "Class-conditional kNN distance method from knnFeat (MIT, Copyright (c) 2018 Shotaro Ishihara); reimplemented with fit-in-fold OOF and bounded reference sets, no source code copied."

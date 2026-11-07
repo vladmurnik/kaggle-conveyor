@@ -1,0 +1,33 @@
+id: kconv/linear-stack
+kind: preset
+title: kconv linear stack
+author: kconv
+source: local
+license: MIT
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "A compact linear-plus-tree stack for small and medium tabular datasets."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [logreg, ridge, histgb]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+    meta_model: auto
+    meta_splits: 5
+attribution: "Original kconv catalog recipe; no external source code copied."

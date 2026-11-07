@@ -1,0 +1,33 @@
+id: kconv/sklearn-diverse
+kind: preset
+title: kconv diverse sklearn ensemble
+author: kconv
+source: local
+license: MIT
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "A broad, cheap baseline mixing GBDTs with scikit-learn forests and linear models."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [lgbm, histgb, random_forest_classifier, random_forest_regressor]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+    meta_model: auto
+    meta_splits: 5
+attribution: "Original kconv catalog recipe; no external source code copied."

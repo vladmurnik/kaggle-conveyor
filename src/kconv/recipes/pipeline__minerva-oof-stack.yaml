@@ -1,0 +1,30 @@
+id: pipeline/minerva-oof-stack
+kind: pipeline
+derived_from: minerva/stacking
+title: Minerva OOF stacking pipeline
+author: Minerva ML
+source: https://github.com/minerva-ml/open-solution-home-credit
+license: MIT
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Diverse GBDT and linear base models combined with OOF stacking."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb, catboost, logreg]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+attribution: "Stacking methodology adapted from minerva-ml/open-solution-home-credit (MIT)."

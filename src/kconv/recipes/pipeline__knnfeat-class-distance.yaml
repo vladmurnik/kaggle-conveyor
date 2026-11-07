@@ -1,0 +1,32 @@
+id: pipeline/knnfeat-class-distance
+kind: pipeline
+derived_from: knnfeat/knn-features
+title: knnFeat class-distance pipeline
+author: Shotaro Ishihara (upura)
+source: https://github.com/upura/knnFeat
+license: MIT
+group: engineering
+tasks: [binary, multiclass]
+best_for: "Classification with class-conditional kNN distances fitted inside each outer training fold."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: knn_class_distance
+      params: {neighbors: 3, folds: 5, max_reference_rows: 50000}
+attribution: "Class-distance method adapted from upura/knnFeat (MIT); kconv implementation is fit-in-fold with inner OOF."

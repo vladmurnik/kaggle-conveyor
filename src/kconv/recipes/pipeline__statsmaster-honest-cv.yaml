@@ -1,0 +1,36 @@
+id: pipeline/statsmaster-honest-cv
+kind: pipeline
+derived_from: statsmaster/tabular
+title: StatsMaster honest-CV pipeline
+author: StatsMaster
+source: https://github.com/StatsMaster/kaggle-grandmaster-templates
+license: "NO LICENSE - ideas only"
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Competition-grade GBDT baselines with adversarial validation, variance selection and a lean weighted blend."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+    adversarial: true
+    adversarial_threshold: 0.8
+  models: [lgbm, xgb, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: variance, max_features: 50}
+attribution: "Methodology ideas from public grandmaster templates; validation and block graph are original kconv configuration, no source code copied."

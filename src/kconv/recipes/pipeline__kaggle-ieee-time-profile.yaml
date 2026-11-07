@@ -1,0 +1,49 @@
+id: pipeline/kaggle-ieee-time-profile
+kind: pipeline
+derived_from: kaggle-ieee/fraud-pipeline
+title: IEEE fraud time-profile pipeline
+author: Rob Mulla
+source: https://github.com/RobMulla/kaggle-ieee-fraud-detection
+license: Apache-2.0
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Time-ordered fraud-style tables with past-only lags/rolling windows, cyclical datetime views and target/frequency encoding."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: time_series
+      params:
+        {
+          time_col: auto,
+          group_col: auto,
+          columns: auto,
+          lags: [1, 2],
+          windows: [3, 7],
+          stats: [mean, std],
+          include_elapsed: true,
+          include_diff: true,
+        }
+    - type: datetime_cyclical
+      params: {columns: auto, periods: [month, dayofweek, hour]}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 20}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Wide-table frequency-encoding and validation workflow ideas from Rob Mulla's kaggle-ieee-fraud-detection (Apache-2.0); past-only lags/rolling windows and cyclical datetime features are original kconv implementations, no source code copied."

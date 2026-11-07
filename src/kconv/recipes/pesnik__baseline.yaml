@@ -1,0 +1,31 @@
+id: pesnik/baseline
+kind: preset
+title: Pesnik clean baseline
+author: Pesnik
+source: https://github.com/pesnik/kaggle-starter-kit
+license: MIT
+group: baseline
+tasks: [binary, multiclass, regression]
+best_for: "A fast, reproducible first submission on any tabular dataset; minimal feature engineering."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [lgbm]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: best_single
+    fallback: best_single
+attribution: "Config-first starter-kit structure; methodology only."

@@ -1,0 +1,39 @@
+id: pipeline/ensemble-amazon-interaction-target
+kind: pipeline
+derived_from: ensemble-amazon/stacking
+title: ensemble_amazon interaction-target stack pipeline
+author: kaz-Anova
+source: https://github.com/kaz-Anova/ensemble_amazon
+license: Apache-2.0
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Diverse GBDT/linear members with target-encoded categorical interactions and OOF meta-stacking."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, xgb, catboost, logreg]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+    meta_model: auto
+    meta_splits: 5
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: categorical_interaction
+      params: {columns: auto, max_pairs: 4, encoding: target}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Meta-stacking and rank-averaging ideas from ensemble_amazon (Apache-2.0); target-encoded pairwise interactions use kconv's inner-OOF guard and no source code is copied."

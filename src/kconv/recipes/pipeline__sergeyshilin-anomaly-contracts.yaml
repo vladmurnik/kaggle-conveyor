@@ -1,0 +1,40 @@
+id: pipeline/sergeyshilin-anomaly-contracts
+kind: pipeline
+derived_from: sergeyshilin/contracts
+title: Sergey Shilin anomaly-contracts pipeline
+author: Sergey Shilin
+source: https://github.com/sergeyshilin/kaggle-competitions-framework
+license: MIT
+group: architecture
+tasks: [binary, multiclass, regression]
+best_for: "Contract-style runs with adversarial validation, IsolationForest anomaly scores, numeric ratios/differences and a transparent mean blend."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+    adversarial: true
+    adversarial_threshold: 0.8
+  models: [lgbm, catboost, logreg]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: mean
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: anomaly
+      params: {columns: auto, n_estimators: 100, contamination: 0.05, include_flag: true}
+    - type: numeric_interactions
+      params: {columns: auto, max_pairs: 4, operations: [ratio, difference]}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 30}
+attribution: "DataLoader -> Model -> Ensemble contract idea from sergeyshilin/kaggle-competitions-framework (MIT); IsolationForest/numeric interaction blocks and validation settings are original kconv configuration, no source code copied."

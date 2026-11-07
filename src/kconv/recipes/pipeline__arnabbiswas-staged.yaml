@@ -1,0 +1,34 @@
+id: pipeline/arnabbiswas-staged
+kind: pipeline
+derived_from: arnabbiswas1/staged
+title: Arnab staged feature-selection pipeline
+author: Arnab Biswas
+source: https://github.com/arnabbiswas1/kaggle_pipeline_tps_aug_22
+license: Apache-2.0
+group: architecture
+tasks: [binary, multiclass, regression]
+best_for: "Staged feature selection with GBDTs; target/frequency encoding followed by mutual-information ranking."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 30
+    timeout_sec: 900
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: mutual_info, max_features: 25}
+attribution: "Stage boundaries inspired by the Apache-2.0 pipeline; executable selection adaptation with no copied code."

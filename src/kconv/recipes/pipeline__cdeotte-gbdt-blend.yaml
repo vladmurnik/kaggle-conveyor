@@ -1,0 +1,30 @@
+id: pipeline/cdeotte-gbdt-blend
+kind: pipeline
+derived_from: cdeotte/tabular
+title: Cdeotte GBDT blend pipeline
+author: Chris Deotte
+source: https://github.com/cdeotte/KGMON-Playbook-2026
+license: NO LICENSE — ideas only
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "A strong three-family GBDT blend with explicit target/frequency blocks."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+attribution: "Methodology adapted from the cdeotte playbook; no source code is vendored."

@@ -1,0 +1,49 @@
+id: pipeline/kaggle-ieee-cluster-anomaly
+kind: pipeline
+derived_from: kaggle-ieee/fraud-pipeline
+title: IEEE fraud cluster/anomaly pipeline
+author: Rob Mulla
+source: https://github.com/RobMulla/kaggle-ieee-fraud-detection
+license: Apache-2.0
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Wide fraud-style tables with informative missingness, fit-in-fold cluster distances and IsolationForest scores plus target/frequency encoding."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: missingness
+      params: {columns: auto, indicators: true, row_count: true, zero_count: true}
+    - type: clustering
+      params:
+        {
+          columns: auto,
+          n_clusters: 8,
+          max_iter: 100,
+          include_distances: true,
+          include_labels: true,
+          max_fit_rows: 50000,
+        }
+    - type: anomaly
+      params: {columns: auto, n_estimators: 100, contamination: auto, include_flag: true}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 20}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Wide-table missingness and frequency-encoding workflow ideas from Rob Mulla's kaggle-ieee-fraud-detection (Apache-2.0); MiniBatchKMeans, IsolationForest and fold-fitted encoding features are original kconv implementations, no source code copied."

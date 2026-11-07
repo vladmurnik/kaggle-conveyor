@@ -1,0 +1,31 @@
+id: sergeyshilin/contracts
+kind: preset
+title: Sergey Shilin contracts
+author: Sergey Shilin
+source: https://github.com/sergeyshilin/kaggle-competitions-framework
+license: MIT
+group: architecture
+tasks: [binary, multiclass, regression]
+best_for: "Clean DataLoader/Model/Ensemble composition; easy to extend with custom adapters."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [lgbm, catboost, logreg]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: mean
+    fallback: best_single
+attribution: "Contract-style DataLoader -> Model -> Ensemble design; no code copied."

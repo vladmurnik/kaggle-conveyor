@@ -1,0 +1,30 @@
+id: pipeline/pesnik-clean
+kind: pipeline
+derived_from: pesnik/baseline
+title: Pesnik clean executable baseline
+author: Pesnik
+source: https://github.com/pesnik/kaggle-starter-kit
+license: MIT
+group: baseline
+tasks: [binary, multiclass, regression]
+best_for: "The smallest honest executable pipeline: base features plus automatic target/frequency encoding and one LGBM."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+attribution: "Adapted from the pesnik starter-kit structure; original feature logic is kconv's fit-in-fold implementation."

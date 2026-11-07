@@ -1,0 +1,49 @@
+id: pipeline/kozodoi-time-profile
+kind: pipeline
+derived_from: kozodoi/tabular
+title: Kozodoi time-profile pipeline
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/Kaggle_Home_Credit
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Grouped time-ordered tabular data with past-only lags, rolling statistics and elapsed/diff time plus target/frequency encoding."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: time_series
+      params:
+        {
+          time_col: auto,
+          group_col: auto,
+          columns: auto,
+          lags: [1, 3],
+          windows: [3, 7],
+          stats: [mean, std, min, max],
+          include_elapsed: true,
+          include_diff: true,
+        }
+    - type: numeric_interactions
+      params: {columns: auto, max_pairs: 4, operations: [ratio, difference]}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Practical high-cardinality feature-engineering ideas from kozodoi/Kaggle_Home_Credit (MIT); past-only grouped lags/rolling windows, elapsed/diff features and fold-fitted encodings are original kconv implementations, no source code copied."

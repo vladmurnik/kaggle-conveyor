@@ -1,0 +1,34 @@
+id: pipeline/dptools-group-profile
+kind: pipeline
+derived_from: dptools/row-features
+title: dptools group-profile pipeline
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/dptools
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Tree models with fit-in-fold group mean/std/count aggregates, target/frequency encoding and model-importance selection."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: group_statistics
+      params: {group_col: auto, columns: auto, stats: [mean, std, count], max_columns: 8}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Group-aggregate workflow inspired by kozodoi/dptools (MIT); kconv compiles the block to a reviewed fold plan fitted only on the outer training fold, and adds model-importance selection."

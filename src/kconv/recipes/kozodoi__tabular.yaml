@@ -1,0 +1,31 @@
+id: kozodoi/tabular
+kind: preset
+title: Kozodoi pragmatic tabular
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/Kaggle_Home_Credit
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "High-cardinality categorical tabular data and practical single-model + blend workflows."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [lgbm, catboost]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+attribution: "Practical feature-engineering/blending ideas; no code copied."

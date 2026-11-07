@@ -1,0 +1,36 @@
+id: pipeline/nyaggle-oof-ensemble
+kind: pipeline
+derived_from: nyaggle/oof-ensemble
+title: nyaggle OOF ensemble pipeline
+author: Kota Yuhara (nyanp)
+source: https://github.com/nyanp/nyaggle
+license: MIT
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "OOF experiment tracking and a compact GBDT stack with model-importance feature selection."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, xgb, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+    meta_model: auto
+    meta_splits: 5
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 35}
+attribution: "OOF experiment-tracking and stacking ideas from nyaggle (MIT); kconv uses its own fit-in-fold selector and meta-stacker."

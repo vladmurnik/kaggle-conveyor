@@ -1,0 +1,31 @@
+id: arnabbiswas1/staged
+kind: preset
+title: Arnab staged pipeline
+author: Arnab Biswas
+source: https://github.com/arnabbiswas1/kaggle_pipeline_tps_aug_22
+license: Apache-2.0
+group: architecture
+tasks: [binary, multiclass, regression]
+best_for: "Staged munging/feature-selection/HPO workflows; good when you want a deeper run."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [lgbm, xgb]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 30
+    timeout_sec: 900
+  ensemble:
+    method: weighted
+    fallback: best_single
+attribution: "Stage boundaries inspired by the Apache-2.0 pipeline; original implementation."

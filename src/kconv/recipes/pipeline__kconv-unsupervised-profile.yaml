@@ -1,0 +1,45 @@
+id: pipeline/kconv-unsupervised-profile
+kind: pipeline
+derived_from: kconv/sklearn-diverse
+title: kconv unsupervised-profile pipeline
+author: kconv
+source: local
+license: MIT
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "A broad unsupervised feature profile (numeric interactions, cluster distances, anomaly scores) for diverse sklearn/GBDT members."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, histgb, random_forest_classifier, random_forest_regressor]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {scale: standard}
+    - type: numeric_interactions
+      params: {columns: auto, max_pairs: 6, operations: [product, ratio, difference, sum]}
+    - type: clustering
+      params:
+        {
+          columns: auto,
+          n_clusters: 8,
+          max_iter: 100,
+          include_distances: true,
+          include_labels: false,
+          max_fit_rows: 50000,
+        }
+    - type: anomaly
+      params: {columns: auto, n_estimators: 80, contamination: auto, include_flag: true}
+    - type: feature_selection
+      params: {method: variance, max_features: 50}
+attribution: "Original kconv catalog recipe; combines label-free numeric interactions with fit-in-fold cluster and anomaly features, no external source code copied."

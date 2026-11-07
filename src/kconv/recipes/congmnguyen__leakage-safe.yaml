@@ -1,0 +1,31 @@
+id: congmnguyen/leakage-safe
+kind: preset
+title: congmnguyen leakage-audited lab
+author: Cong Nguyen
+source: https://github.com/congmnguyen/tabular-ml-lab
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Tabular work where CV integrity matters more than squeezing the last 0.001."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [lgbm, xgb]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+attribution: "Leakage-safe CV/OOF patterns; adapters are original wrappers."

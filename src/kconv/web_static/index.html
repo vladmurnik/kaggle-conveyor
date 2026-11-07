@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0f11">
+  <title>kconv — локальный Kaggle-конвейер</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+
+
+
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">k</div>
+        <div>
+          <div class="brand-title">kconv <span>studio</span></div>
+          <div class="brand-sub">локальный Kaggle-конвейер</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="local-pill"><i></i> локальный режим</span>
+        <button class="button ghost" id="refresh" type="button">Обновить</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">train → CV → submission</div>
+        <h1>Train и test.<br><em>Один конвейер.</em></h1>
+        <p>Загрузите train и test, выберите target и модели. kconv соберёт folds, обучит кандидатов, сделает blend и подготовит submission.</p>
+        <div class="hero-pills">
+          <span>CV</span>
+          <span>blending</span>
+          <span>OOF</span>
+          <span>submission</span>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span id="hero-models">—</span>
+          <small>моделей в каталоге</small>
+        </div>
+        <div class="hero-stat">
+          <span id="hero-rows">—</span>
+          <small>строк в train</small>
+        </div>
+        <div class="hero-stat">
+          <span id="hero-recipes">—</span>
+          <small>recipes</small>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout-main">
+      <section class="card data-card">
+        <div class="card-head">
+          <div>
+            <div class="step">01 / данные</div>
+            <h2>Файлы датасета</h2>
+          </div>
+          <span class="card-state" id="dataset-status">ожидание</span>
+        </div>
+
+        <div class="drop-grid">
+          <label class="dropzone" id="drop-train">
+            <input id="file-train" type="file" accept=".csv,.csv.gz,.parquet,.pq">
+            <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg></span>
+            <span class="drop-title">train <b>обязательно</b></span>
+            <span class="drop-note">CSV / Parquet, target внутри</span>
+            <span class="drop-file" id="train-file">не загружен</span>
+          </label>
+          <label class="dropzone" id="drop-test">
+            <input id="file-test" type="file" accept=".csv,.csv.gz,.parquet,.pq">
+            <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg></span>
+            <span class="drop-title">test <b>для submission</b></span>
+            <span class="drop-note">CSV / Parquet, без target</span>
+            <span class="drop-file" id="test-file">не загружен</span>
+          </label>
+          <label class="dropzone muted" id="drop-sample">
+            <input id="file-sample" type="file" accept=".csv,.csv.gz,.parquet,.pq">
+            <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg></span>
+            <span class="drop-title">sample_submission <b>опционально</b></span>
+            <span class="drop-note">порядок id и колонки</span>
+            <span class="drop-file" id="sample-file">не загружен</span>
+          </label>
+        </div>
+        <div class="upload-line">
+          <span id="upload-status">Файлы можно перетащить в зону или выбрать вручную.</span>
+          <span id="data-dir-label" class="mono"></span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="card-head compact">
+          <div>
+            <div class="step">02 / проверка</div>
+            <h2>Что внутри</h2>
+          </div>
+          <span class="mono" id="preview-meta">—</span>
+        </div>
+        <div id="detected-warning" class="notice hidden"></div>
+        <div class="dataset-facts" id="dataset-facts"></div>
+        <div class="table-wrap preview-wrap">
+          <table class="data-table" id="preview-table">
+            <thead><tr><th>Загрузите train</th></tr></thead>
+            <tbody><tr><td class="empty-cell">Здесь появится превью колонок.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card setup-card">
+        <div class="card-head">
+          <div>
+            <div class="step">03 / настройка</div>
+            <h2>Запуск конвейера</h2>
+          </div>
+          <span class="card-state">local</span>
+        </div>
+
+        <div class="notice bad hidden" id="config-error"></div>
+
+        <div class="form-grid">
+          <label class="field field-wide">
+            <span>Проект</span>
+            <input id="project" type="text" value="my-project" spellcheck="false" autocomplete="off">
+            <small>папка в <code>competitions/</code></small>
+          </label>
+          <label class="field">
+            <span>Target</span>
+            <select id="target"><option value="">— загрузите train —</option></select>
+          </label>
+          <label class="field">
+            <span>ID колонка</span>
+            <select id="id-col"><option value="">auto</option></select>
+          </label>
+          <label class="field">
+            <span>Задача</span>
+            <select id="task">
+              <option value="auto">auto</option>
+              <option value="binary">binary</option>
+              <option value="multiclass">multiclass</option>
+              <option value="regression">regression</option>
+            </select>
+            <small id="task-note">Определяется по target; binary для 2 классов.</small>
+          </label>
+          <label class="field">
+            <span>Метрика</span>
+            <select id="metric"><option value="auto">auto</option></select>
+          </label>
+          <label class="field field-wide">
+            <span>Recipe</span>
+            <select id="recipe"></select>
+            <small>defaults для CV, признаков и блендинга; модели выбираются ниже</small>
+          </label>
+          <label class="field">
+            <span>Стратегия</span>
+            <select id="strategy">
+              <option value="fast">fast</option>
+              <option value="standard" selected>standard</option>
+              <option value="deep">deep</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Профиль железа</span>
+            <select id="profile"><option value="">auto / без профиля</option></select>
+          </label>
+          <label class="field">
+            <span>% датасета</span>
+            <input id="sample-pct" type="number" min="1" max="100" step="1" value="100">
+            <small>Доля train для обучения; 100 — все строки.</small>
+          </label>
+        </div>
+
+        <div class="recipe-card hidden" id="recipe-card">
+          <div class="recipe-card-head">
+            <div>
+              <span class="recipe-kicker" id="recipe-group"></span>
+              <strong id="recipe-title"></strong>
+            </div>
+            <div class="recipe-badges">
+              <span class="recipe-kind" id="recipe-kind"></span>
+              <span class="recipe-license" id="recipe-license"></span>
+            </div>
+          </div>
+          <p id="recipe-best"></p>
+          <div class="recipe-grid">
+            <div><span>models</span><b id="recipe-models"></b></div>
+            <div><span>CV</span><b id="recipe-cv"></b></div>
+            <div><span>ensemble</span><b id="recipe-ensemble"></b></div>
+            <div><span>HPO</span><b id="recipe-hpo"></b></div>
+            <div><span>blocks</span><b id="recipe-blocks"></b></div>
+            <div><span>lineage</span><b id="recipe-derived"></b></div>
+          </div>
+          <div class="recipe-foot">
+            <span id="recipe-note"></span>
+          </div>
+        </div>
+
+        <div class="llm-card" id="llm-card">
+          <div class="llm-card-head">
+            <div>
+              <span class="recipe-kicker">optional / experiment</span>
+              <strong>LLM-признаки</strong>
+            </div>
+            <span class="llm-badge" id="llm-badge">off</span>
+          </div>
+          <p class="llm-lead">
+            Модель предлагает формулы по схеме и нескольким строкам. Target и ID не отправляются,
+            код не исполняется: kconv проверяет выражения, а вы утверждаете план перед запуском.
+          </p>
+          <label class="check-row llm-toggle">
+            <input id="llm-enabled" type="checkbox">
+            <span class="check-ui"></span>
+            <span>
+              <b>Включить генерацию признаков через LLM</b>
+              <small>Off — обычный pipeline. On — нужно сгенерировать и подтвердить план.</small>
+            </span>
+          </label>
+          <div class="llm-body hidden" id="llm-body">
+            <div class="form-grid llm-form">
+              <label class="field">
+                <span>Провайдер</span>
+                <select id="llm-provider">
+                  <option value="mock">mock — offline demo</option>
+                  <option value="openai">openai — API</option>
+                  <option value="local">local — llama.cpp / Ollama / vLLM</option>
+                </select>
+                <small id="llm-provider-note">mock работает без сети и ключа.</small>
+              </label>
+              <label class="field">
+                <span>Максимум признаков</span>
+                <input id="llm-max-features" type="number" min="1" max="20" value="5" inputmode="numeric">
+              </label>
+              <label class="field">
+                <span>Max tokens</span>
+                <input id="llm-max-tokens" type="number" min="1" max="8192" value="1024" inputmode="numeric">
+              </label>
+              <label class="field hidden" id="llm-model-field">
+                <span>Модель</span>
+                <input id="llm-model" type="text" placeholder="auto / loaded model" spellcheck="false" autocomplete="off">
+              </label>
+              <label class="field hidden" id="llm-base-field">
+                <span>Base URL (loopback)</span>
+                <input id="llm-base-url" type="url" placeholder="auto: llama.cpp :8080 / Ollama :11434" spellcheck="false" autocomplete="off">
+              </label>
+            </div>
+            <label class="field llm-wide">
+              <span>Свои идеи (по одной на строку)</span>
+              <textarea id="llm-ideas" rows="3" placeholder="Например: отношение numeric-колонок, разность или произведение"></textarea>
+            </label>
+            <label class="field llm-wide">
+              <span>Свой код или псевдокод (не исполняется)</span>
+              <textarea id="llm-code" rows="4" placeholder="def ratio(a, b): return a / b"></textarea>
+            </label>
+            <label class="field">
+              <span>Repair attempts</span>
+              <input id="llm-repairs" type="number" min="0" max="5" value="2" inputmode="numeric">
+            </label>
+            <div class="llm-actions hidden" id="llm-local-tools">
+              <button class="button ghost" id="llm-local-discover" type="button">Найти локальный сервер</button>
+              <span id="llm-local-status">llama.cpp :8080 · Ollama :11434 · vLLM :8000</span>
+              <details class="llm-help" id="llm-local-help">
+                <summary>Как запустить локальную LLM</summary>
+                <div class="llm-help-body">
+                  <p>kconv не запускает модель сам — нужен уже работающий OpenAI-compatible сервер на loopback.</p>
+                  <p class="llm-help-label">llama.cpp</p>
+                  <pre><code>llama-server -m C:\models\qwen2.5-coder-7b-instruct-q4_k_m.gguf --host 127.0.0.1 --port 8080 -c 8192</code></pre>
+                  <p class="llm-help-label">Ollama</p>
+                  <pre><code>ollama serve
+ollama pull qwen2.5-coder:7b</code></pre>
+                  <p>Держите терминал с сервером открытым. Если <code>/v1/models</code> не отвечает, впишите Base URL и модель вручную; затем нажмите «Найти локальный сервер» → «Сгенерировать план».</p>
+                </div>
+              </details>
+            </div>
+            <label class="check-row llm-toggle">
+              <input id="llm-json-mode" type="checkbox" checked>
+              <span class="check-ui"></span>
+              <span>
+                <b>JSON mode</b>
+                <small>OpenAI обычно требует включённым; для некоторых local-моделей выключите.</small>
+              </span>
+            </label>
+            <div class="llm-actions">
+              <button class="button ghost" id="llm-generate" type="button">Сгенерировать план</button>
+              <span id="llm-status">План ещё не создан.</span>
+            </div>
+            <div class="notice hidden" id="llm-notice"></div>
+            <div class="table-wrap hidden llm-plan-wrap" id="llm-plan-wrap">
+              <table class="data-table llm-table" id="llm-plan-table">
+                <thead><tr><th>имя</th><th>тип</th><th>выражение</th><th>зачем</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <label class="check-row hidden" id="llm-approve-row">
+              <input id="llm-approved" type="checkbox">
+              <span class="check-ui"></span>
+              <span>
+                <b>Я проверил(а) формулы и разрешаю применить план</b>
+                <small>План будет передан в <code>kconv run --experiment llm-feature-proposals</code>.</small>
+              </span>
+            </label>
+            <div class="llm-meta" id="llm-meta"></div>
+          </div>
+        </div>
+
+        <div class="inline-note" id="profile-note">Профиль 1–5 переопределяет стратегию и подбирает лимиты CPU/GPU.</div>
+
+        <details class="tuning-card" id="resource-card">
+          <summary>Ресурсы: CPU / GPU / RAM <span>опционально</span></summary>
+          <div class="tuning-body">
+            <div class="form-grid resource-grid">
+              <label class="field">
+                <span>Устройство</span>
+                <select id="device" disabled>
+                  <option value="">auto (из профиля)</option>
+                  <option value="cpu">CPU</option>
+                  <option value="cuda">GPU / CUDA</option>
+                </select>
+                <small>GPU только для профилей 4–5 и поддерживающих моделей.</small>
+              </label>
+              <label class="field">
+                <span>CPU threads</span>
+                <input id="cpu-threads" type="number" min="0" max="256" step="1" inputmode="numeric" placeholder="auto" disabled>
+                <small>LGBM/XGB/CatBoost; 0 = все ядра.</small>
+              </label>
+              <label class="field">
+                <span>RAM, GB</span>
+                <input id="ram-gb" type="number" min="1" max="1024" step="1" inputmode="numeric" placeholder="из профиля" disabled>
+                <small>Бюджет для планирования, не жёсткий cgroup.</small>
+              </label>
+              <label class="field">
+                <span>VRAM, GB</span>
+                <input id="vram-gb" type="number" min="0" max="256" step="1" inputmode="numeric" placeholder="из профиля" disabled>
+                <small>Ориентир для GPU; не жёсткий лимит драйвера.</small>
+              </label>
+            </div>
+            <div class="inline-note" id="resource-note">Выберите профиль, чтобы переопределить CPU threads, RAM и VRAM.</div>
+          </div>
+        </details>
+
+        <details class="strategy-note" id="strategy-help">
+          <summary>Чем отличаются стратегии <span>fast / standard / deep</span></summary>
+          <div class="strategy-grid">
+            <div>
+              <b>fast</b>
+              <span>3 folds · 1 seed</span>
+              <small>HPO off — быстрый baseline и первая проверка данных.</small>
+            </div>
+            <div>
+              <b>standard</b>
+              <span>5 folds · 2 seeds</span>
+              <small>HPO off — стабильнее OOF без долгого поиска.</small>
+            </div>
+            <div>
+              <b>deep</b>
+              <span>5 folds · 3 seeds</span>
+              <small>HPO on, 8 trials — дороже по времени и CPU/GPU.</small>
+            </div>
+          </div>
+          <p>Профиль 1–2 включает fast, 3–4 — standard, 5 — deep. Выбранный профиль имеет приоритет над стратегией.</p>
+        </details>
+
+        <div class="model-head">
+          <div>
+            <span class="label">Модели</span>
+            <small id="model-count">0 выбрано</small>
+          </div>
+          <input id="model-search" type="search" placeholder="Поиск модели…" autocomplete="off">
+        </div>
+        <div class="model-picked" id="model-picked"></div>
+        <div class="model-grid" id="models"></div>
+
+        <details class="tuning-card" id="model-params-card">
+          <summary>Гиперпараметры моделей <span>опционально</span></summary>
+          <div class="tuning-body">
+            <p class="tuning-lead">
+              JSON-объект для выбранной модели. Пусто — defaults recipe/profile.
+              Ручные значения имеют приоритет; при <code>deep</code> HPO может заново подобрать
+              параметры из своего search space.
+            </p>
+            <div class="model-params-rows" id="model-params-rows"></div>
+          </div>
+        </details>
+
+        <label class="check-row">
+          <input id="until-full" type="checkbox" checked>
+          <span class="check-ui"></span>
+          <span>
+            <b>Полный прогон</b>
+            <small>train → blend → submission → report. Без test будет только CV.</small>
+          </span>
+        </label>
+
+        <div class="run-actions">
+          <button class="button primary" id="run" type="button">Запустить конвейер</button>
+          <button class="button danger" id="stop" type="button" disabled>Стоп</button>
+        </div>
+        <div class="hint" id="run-hint">Сначала загрузите train. Остальное kconv определит сам.</div>
+      </section>
+    </div>
+
+    <section class="card variant-card">
+      <div class="card-head">
+        <div>
+          <div class="step">04 / варианты</div>
+          <h2>Очередь запусков</h2>
+        </div>
+        <span class="card-state" id="queue-state">0 в очереди</span>
+      </div>
+      <p class="variant-intro">
+        Соберите сколько угодно вариантов: меняйте strategy, profile, recipe или модели и добавляйте
+        текущую настройку. Сервер выполнит их по одному и покажет сравнение OOF по каждому датасету.
+      </p>
+      <div class="variant-batch">
+        <div class="pipeline-presets">
+          <label class="field">
+            <span>Готовый набор pipelines</span>
+            <select id="pipeline-preset">
+              <option value="">свой выбор</option>
+            </select>
+            <small id="pipeline-preset-note">Выберите набор — в списке ниже сразу выделятся его pipelines.</small>
+          </label>
+          <div class="pipeline-preset-actions">
+            <button class="button ghost compact" id="pipeline-select-all" type="button">Все</button>
+            <button class="button ghost compact" id="pipeline-select-none" type="button">Снять</button>
+          </div>
+        </div>
+        <label class="field">
+          <span>Пакет pipelines</span>
+          <select id="recipe-batch" multiple size="9"></select>
+          <small>Ctrl/Cmd — несколько. Выбранные pipelines получат текущие модели, strategy, profile, % датасета и LLM-план.</small>
+        </label>
+        <button class="button ghost" id="variant-add-pipelines" type="button">+ Добавить выбранные pipelines</button>
+      </div>
+      <div class="variant-toolbar">
+        <button class="button ghost" id="variant-add" type="button">+ Добавить текущий вариант</button>
+        <button class="button ghost" id="variant-clear" type="button">Очистить список</button>
+      </div>
+      <div class="variant-list" id="variants"></div>
+      <div class="variant-foot">
+        <span id="variant-hint">Список пуст. Добавьте хотя бы один вариант.</span>
+        <button class="button primary compact" id="variant-start" type="button">Запустить очередь</button>
+      </div>
+            <div class="queue-toolbar">
+        <label class="field compact-field">
+          <span>Фильтр статуса</span>
+          <select id="queue-filter">
+            <option value="all">все</option>
+            <option value="queued">queued</option>
+            <option value="running">running</option>
+            <option value="completed">completed</option>
+            <option value="completed_with_warnings">completed with warnings</option>
+            <option value="failed">failed</option>
+            <option value="stopped">stopped</option>
+            <option value="cancelled">cancelled</option>
+          </select>
+        </label>
+      </div>
+<div class="queue-list" id="queue-list"></div>
+    </section>
+
+    <section class="card progress-card">
+      <div class="card-head">
+        <div>
+          <div class="step">05 / выполнение</div>
+          <h2>Прогресс</h2>
+        </div>
+        <span class="run-badge idle" id="run-status-badge">idle</span>
+      </div>
+      <div class="run-meta" id="run-meta"></div>
+      <div class="timeline" id="stages"></div>
+      <details class="log-box" id="log-wrap">
+        <summary>Лог процесса <span id="log-count">0 строк</span></summary>
+        <div class="log-tools">
+          <select id="log-level" aria-label="Уровень лога">
+            <option value="">все уровни</option>
+            <option value="INFO">info</option>
+            <option value="WARNING">warning</option>
+            <option value="ERROR">error</option>
+          </select>
+          <input id="log-query" type="search" placeholder="Поиск по логу" autocomplete="off">
+          <label class="check-inline"><input id="log-follow" type="checkbox" checked> follow</label>
+        </div>
+        <pre id="log"></pre>
+      </details>
+    </section>
+
+    <section class="card failure-card hidden" id="failure-card">
+      <div class="card-head">
+        <div>
+          <div class="step">05b / postmortem</div>
+          <h2>Почему запуск остановился</h2>
+        </div>
+        <span class="card-state bad" id="failure-state">failed</span>
+      </div>
+      <div class="failure-meta" id="failure-meta"></div>
+      <div class="failure-actions">
+        <button class="button primary compact" id="failure-continue" type="button">Продолжить с --resume</button>
+        <a class="button ghost compact" id="failure-download" href="#" target="_blank" rel="noopener">failure.json</a>
+      </div>
+      <div id="failure-report" class="report-markdown"></div>
+    </section>
+
+    <div class="layout-results">
+      <section class="card results-card">
+        <div class="card-head">
+          <div>
+            <div class="step">06 / результат</div>
+            <h2>Качество</h2>
+          </div>
+          <span class="card-state" id="results-state">нет запуска</span>
+        </div>
+        <div id="results-empty" class="empty-state">
+
+          <b>Здесь появятся OOF-метрики</b>
+          <span>После обучения — сравнение моделей, blend, preview submission и отчёт.</span>
+        </div>
+        <div id="results-body" class="hidden">
+          <div class="metric-cards" id="metric-cards"></div>
+          <div class="bars" id="bars"></div>
+          <div class="blend-note" id="blend-note"></div>
+          <div class="downloads" id="downloads">
+            <a class="button ghost hidden" id="dl-sub" href="#">Скачать submission</a>
+            <a class="button ghost hidden" id="dl-report" href="#">Скачать report.md</a>
+          </div>
+          <div class="mini-head">Submission preview</div>
+          <div class="table-wrap">
+            <table class="data-table" id="submission-preview">
+              <thead><tr><th>—</th></tr></thead>
+              <tbody><tr><td class="empty-cell">Появится после стадии submit.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card stats-card">
+        <div class="card-head">
+          <div>
+            <div class="step">07 / статистика</div>
+            <h2>Каталог</h2>
+          </div>
+          <span class="card-state">live</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat"><span id="stat-models">—</span><small>моделей</small></div>
+          <div class="stat"><span id="stat-recipes">—</span><small>recipes</small></div>
+          <div class="stat"><span id="stat-sources">—</span><small>sources</small></div>
+          <div class="stat"><span id="stat-rows">—</span><small>строк train</small></div>
+        </div>
+        <div class="stats-detail" id="stats-detail"></div>
+      </section>
+    </div>
+
+    <section class="card comparison-card">
+      <div class="card-head">
+        <div>
+          <div class="step">08 / сравнение</div>
+          <h2>Варианты проекта</h2>
+        </div>
+        <div class="comparison-controls">
+          <label class="field">
+            <span>Датасет</span>
+            <select id="comparison-dataset"><option value="">все датасеты</option></select>
+          </label>
+          <button class="button ghost small" id="comparison-refresh" type="button">Обновить сравнение</button>
+        </div>
+      </div>
+      <div class="comparison-summary" id="comparison-summary"></div>
+      <div class="table-wrap comparison-wrap">
+        <table class="data-table comparison-table" id="comparison-table">
+          <thead><tr><th>#</th><th>run</th><th>датасет</th><th>strategy</th><th>models</th><th>OOF</th><th>best single</th><th>time</th><th>status</th></tr></thead>
+          <tbody><tr><td class="empty-cell" colspan="9">Запустите очередь или полный прогон — здесь появятся все runs проекта.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card report-card">
+      <div class="card-head">
+        <div>
+          <div class="step">09 / отчёт</div>
+          <h2>Markdown report</h2>
+        </div>
+        <span class="mono">05_report/report.md</span>
+      </div>
+      <div id="report" class="report-markdown"><p class="report-empty">Отчёт появится после завершения полного прогона.</p></div>
+    </section>
+
+    <section class="card kaggle-card" id="kaggle-card">
+      <div class="card-head">
+        <div>
+          <div class="step">10 / kaggle</div>
+          <h2>Отправка submission</h2>
+        </div>
+        <span class="card-state" id="kaggle-status-badge">проверка</span>
+      </div>
+      <p class="kaggle-lead">
+        Вставьте API token из Kaggle Settings → API (или username/key из старого <code>kaggle.json</code>)
+        один раз, укажите slug соревнования — дальше submission отправляется одной кнопкой.
+        Секрет сохраняется только на этой машине и никогда не возвращается в браузер.
+      </p>
+      <div class="notice hidden" id="kaggle-notice"></div>
+      <div class="form-grid kaggle-form">
+        <label class="field field-wide">
+          <span>Competition slug</span>
+          <input id="kaggle-competition" type="text" placeholder="например titanic" spellcheck="false" autocomplete="off">
+          <small>Slug из URL: <code>kaggle.com/competitions/&lt;slug&gt;</code></small>
+        </label>
+        <label class="field field-wide">
+          <span>API token</span>
+          <input id="kaggle-token" type="password" placeholder="токен из Kaggle Settings → API" spellcheck="false" autocomplete="new-password">
+          <small>Рекомендуется. Сохраняется в <code>~/.kaggle/access_token</code>, не в localStorage.</small>
+        </label>
+        <details class="kaggle-legacy field-wide">
+          <summary>Или старый <code>kaggle.json</code>: username + key</summary>
+          <div class="form-grid kaggle-legacy-grid">
+            <label class="field">
+              <span>Kaggle username</span>
+              <input id="kaggle-username" type="text" placeholder="username из kaggle.json" spellcheck="false" autocomplete="username">
+            </label>
+            <label class="field">
+              <span>API key</span>
+              <input id="kaggle-key" type="password" placeholder="key из kaggle.json" spellcheck="false" autocomplete="new-password">
+              <small>Не сохраняется в localStorage и не логируется.</small>
+            </label>
+          </div>
+        </details>
+        <label class="field field-wide">
+          <span>Сообщение submission</span>
+          <input id="kaggle-message" type="text" value="kconv submission" maxlength="500" autocomplete="off">
+        </label>
+      </div>
+      <div class="kaggle-actions">
+        <button class="button ghost" id="kaggle-save" type="button">Сохранить credentials</button>
+        <button class="button primary compact" id="kaggle-submit" type="button" disabled>Отправить в Kaggle</button>
+        <button class="button ghost small" id="kaggle-refresh" type="button">Проверить</button>
+        <span id="kaggle-submit-note">Сначала завершите полный прогон.</span>
+      </div>
+      <div class="kaggle-meta" id="kaggle-meta"></div>
+      <details class="kaggle-help">
+        <summary>Где взять токен и что именно уходит на Kaggle</summary>
+        <div class="kaggle-help-body">
+          <p>Откройте <code>kaggle.com/settings</code> → <b>API</b> → <b>Generate New Token</b> и скопируйте токен в поле выше. Для старого аккаунта можно раскрыть блок <code>username</code>/<code>key</code> и вставить данные из <code>kaggle.json</code>.</p>
+          <p>При нажатии «Отправить в Kaggle» kconv проверяет CSV (id + prediction, без пустых колонок) и вызывает официальный <code>kaggle competitions submit</code>. На Kaggle уходит только файл submission и сообщение; данные обучения остаются локально.</p>
+          <p>Если credentials уже заданы через <code>KAGGLE_API_TOKEN</code>, <code>KAGGLE_USERNAME</code>/<code>KAGGLE_KEY</code> или <code>KAGGLE_CONFIG_DIR</code>, переменные окружения имеют приоритет над файлом.</p>
+        </div>
+      </details>
+    </section>
+
+    <footer>
+      <span>kconv studio</span>
+      <span class="mono">127.0.0.1 · upload только по кнопке</span>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

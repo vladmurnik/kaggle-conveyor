@@ -1,0 +1,32 @@
+id: kaggle-ieee/fraud-pipeline
+kind: preset
+title: IEEE fraud pipeline
+author: Rob Mulla
+source: https://github.com/RobMulla/kaggle-ieee-fraud-detection
+license: Apache-2.0
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Wide tabular classification/regression data with high-cardinality categoricals and frequency-encoded features."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    auto_encode: true
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [lgbm, xgb]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+attribution: "Feature-engineering, frequency-encoding and validation workflow ideas from the IEEE fraud pipeline (Apache-2.0); no source code copied."

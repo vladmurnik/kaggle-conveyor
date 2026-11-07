@@ -1,0 +1,47 @@
+id: pipeline/nyaggle-cluster-stack
+kind: pipeline
+derived_from: nyaggle/oof-ensemble
+title: nyaggle cluster-stack pipeline
+author: Kota Yuhara (nyanp)
+source: https://github.com/nyanp/nyaggle
+license: MIT
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Medium tabular data where fit-in-fold cluster distances add a label-free view on top of a GBDT OOF stack."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, xgb, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+    meta_model: auto
+    meta_splits: 5
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: clustering
+      params:
+        {
+          columns: auto,
+          n_clusters: 10,
+          max_iter: 100,
+          include_distances: true,
+          include_labels: false,
+          max_fit_rows: 50000,
+        }
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "OOF experiment-tracking and stacking ideas from nyaggle (MIT); MiniBatchKMeans cluster features, fold-fitted encodings and the meta-stacker are original kconv implementations, no source code copied."

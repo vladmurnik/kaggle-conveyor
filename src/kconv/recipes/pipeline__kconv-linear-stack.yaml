@@ -1,0 +1,31 @@
+id: pipeline/kconv-linear-stack
+kind: pipeline
+derived_from: kconv/linear-stack
+title: kconv linear-scale stack pipeline
+author: kconv
+source: local
+license: MIT
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Linear and histogram models on a standardized numeric matrix with target/frequency encoding."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [logreg, ridge, histgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {scale: standard}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+attribution: "kconv's own linear-stack preset, now expressed as an executable block pipeline."

@@ -1,0 +1,32 @@
+id: pipeline/dptools-row-profile
+kind: pipeline
+derived_from: dptools/row-features
+title: dptools row-profile pipeline
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/dptools
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Tree models with label-free row statistics on numeric columns plus target/frequency encoding."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: row_statistics
+      params: {stats: [mean, std, min, max, median]}
+attribution: "Row-statistic idea adapted from kozodoi/dptools (MIT); kconv implementation is fit-in-fold."

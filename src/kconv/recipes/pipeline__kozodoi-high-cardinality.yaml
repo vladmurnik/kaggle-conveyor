@@ -1,0 +1,37 @@
+id: pipeline/kozodoi-high-cardinality
+kind: pipeline
+derived_from: kozodoi/tabular
+title: Kozodoi high-cardinality hash pipeline
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/Kaggle_Home_Credit
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "High-cardinality categorical data with stable hash buckets, target/frequency encoding and model-importance selection."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: hash_encoding
+      params: {columns: auto, n_features: 32}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "High-cardinality workflow inspired by kozodoi/Kaggle_Home_Credit (MIT); hash buckets are an original label-free kconv implementation, while target/frequency encoding and model-importance selection are fit in the outer fold."

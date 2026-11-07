@@ -1,0 +1,31 @@
+id: cdeotte/tabular
+kind: preset
+title: Cdeotte tabular playbook
+author: Chris Deotte
+source: https://github.com/cdeotte/KGMON-Playbook-2026
+license: "NO LICENSE - ideas only"
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Diverse GBDT baselines, seed averaging and a weighted blend on medium/large tabular data."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  features:
+    target_encode: []
+    frequency_encode: []
+    scale: auto
+    impute: median
+    drop_constant: true
+  models: [lgbm, xgb, catboost]
+  model_params: {}
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+attribution: "Ideas from the KGMON playbook; no source code copied."

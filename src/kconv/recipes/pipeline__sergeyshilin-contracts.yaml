@@ -1,0 +1,36 @@
+id: pipeline/sergeyshilin-contracts
+kind: pipeline
+derived_from: sergeyshilin/contracts
+title: Sergey Shilin contracts pipeline
+author: Sergey Shilin
+source: https://github.com/sergeyshilin/kaggle-competitions-framework
+license: MIT
+group: architecture
+tasks: [binary, multiclass, regression]
+best_for: "Contract-style composition with strict adversarial validation, explicit feature selection and a mean blend."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+    adversarial: true
+    adversarial_threshold: 0.8
+  models: [lgbm, catboost, logreg]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: mean
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 30}
+attribution: "DataLoader -> Model -> Ensemble contract idea from sergeyshilin/kaggle-competitions-framework (MIT); validation and blocks are original kconv configuration, no source code copied."

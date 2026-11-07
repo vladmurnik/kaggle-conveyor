@@ -1,0 +1,31 @@
+id: pipeline/kaggle-ieee-frequency
+kind: pipeline
+derived_from: kaggle-ieee/fraud-pipeline
+title: IEEE fraud frequency/wide-table pipeline
+author: Rob Mulla
+source: https://www.kaggle.com/c/ieee-fraud-detection
+license: NO LICENSE — competition methodology only
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Wide tabular data with many categorical columns; frequency-first encoding and a larger category vocabulary."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 20}
+attribution: "Frequency/wide-table methodology inspired by IEEE fraud public notebooks; no source code is vendored."

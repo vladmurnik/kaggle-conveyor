@@ -1,0 +1,35 @@
+id: pipeline/kaggle-ieee-missingness
+kind: pipeline
+derived_from: kaggle-ieee/fraud-pipeline
+title: IEEE fraud missingness pipeline
+author: Rob Mulla
+source: https://github.com/RobMulla/kaggle-ieee-fraud-detection
+license: Apache-2.0
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Wide tables with informative missingness, zero counts, frequency/target encoding and model-importance selection."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: missingness
+      params: {columns: auto, indicators: true, row_count: true, zero_count: true}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 20}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Wide-table missingness handling inspired by Rob Mulla's kaggle-ieee-fraud-detection workflow (Apache-2.0); missing indicators, row missing count, zero count and fold-fitted encodings are original kconv implementations."

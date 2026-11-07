@@ -1,0 +1,46 @@
+id: pipeline/dptools-cluster-profile
+kind: pipeline
+derived_from: dptools/row-features
+title: dptools cluster-profile pipeline
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/dptools
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Numeric tabular data where row statistics and fit-in-fold cluster profiles add signal beyond individual columns."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: clustering
+      params:
+        {
+          columns: auto,
+          n_clusters: 6,
+          max_iter: 100,
+          include_distances: true,
+          include_labels: true,
+          max_fit_rows: 50000,
+        }
+    - type: row_statistics
+      params: {stats: [mean, std, min, max, median]}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Row-wise aggregation and feature-engineering ideas from dptools (MIT); MiniBatchKMeans cluster features are an original fit-in-fold kconv implementation, no source code copied."
