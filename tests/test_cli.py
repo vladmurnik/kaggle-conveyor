@@ -53,6 +53,9 @@ def test_help_and_lists() -> None:
 
 def test_web_requires_allow_remote_for_non_loopback_host(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
+    # Rich truncates the options table on very narrow terminals (CI defaults
+    # to 40 columns), so pin the width before rendering help.
+    monkeypatch.setenv("COLUMNS", "120")
     runner = CliRunner()
     help_result = runner.invoke(app, ["web", "--help"])
     assert help_result.exit_code == 0, help_result.output
