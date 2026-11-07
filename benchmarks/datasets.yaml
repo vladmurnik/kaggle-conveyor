@@ -1,0 +1,58 @@
+datasets:
+  - id: local-binary
+    title: Local satisfaction binary sample
+    kind: local
+    task: binary
+    metric: roc_auc
+    target: satisfaction
+    id_col: id
+    train: data/train.csv
+    test: data/test.csv
+    sample_submission: data/sample_submission.csv
+    sample_fraction: 0.10
+    seed: 42
+    source: user-provided local Kaggle dataset
+    license: user-provided; not committed to the repository
+    notes: Stratified 10% smoke sample; ranking evidence only, not a leaderboard result.
+
+  - id: kgmon-regression
+    title: KGMON calories regression
+    kind: local
+    task: regression
+    metric: rmse
+    target: Calories
+    id_col: User_ID
+    train: kaggle-toolkit/templates/cdeotte__KGMON-Playbook-2026/data/train.csv
+    test: kaggle-toolkit/templates/cdeotte__KGMON-Playbook-2026/data/test.csv
+    sample_submission: kaggle-toolkit/templates/cdeotte__KGMON-Playbook-2026/data/sample_submission.csv
+    fallback_sklearn: diabetes
+    sample_fraction: 0.10
+    seed: 42
+    source: local KGMON template; fallback scikit-learn diabetes
+    license: KGMON template terms; fallback UCI Diabetes public dataset
+    notes: Uses the local template when present, otherwise a deterministic diabetes fallback.
+
+  - id: wine-multiclass
+    title: UCI Wine multiclass
+    kind: sklearn
+    task: multiclass
+    metric: log_loss
+    target: target
+    id_col: id
+    sklearn_dataset: wine
+    seed: 42
+    source: scikit-learn load_wine (UCI Wine)
+    license: public UCI dataset; scikit-learn BSD-3-Clause loader
+    notes: Deterministic 70/30 stratified split for multiclass contract coverage.
+
+  - id: synthetic-contract
+    title: Deterministic synthetic contract
+    kind: synthetic
+    task: binary
+    metric: roc_auc
+    target: target
+    id_col: id
+    seed: 42
+    source: kconv deterministic generator
+    license: generated data; no third-party dataset
+    notes: Contract-only dataset; never use it as evidence of real-world quality.
