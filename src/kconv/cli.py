@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -50,6 +51,27 @@ from kconv.registry import metric_names, model_names
 from kconv.runtime import list_profiles
 from kconv.sources import catalog_stats, get_source, list_sources
 from kconv.state import PipelineState, read_latest_pointer
+
+
+def _configure_stdio() -> None:
+    """Keep redirected Windows output from failing on non-ASCII help text.
+
+    Python falls back to the ANSI code page for pipes and files, and the
+    Russian command descriptions cannot be encoded in cp1252.  Interactive
+    consoles keep their native encoding; only redirected streams switch to
+    UTF-8 so Rich/Typer help never raises UnicodeEncodeError.
+    """
+    if sys.platform != "win32":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            if not stream.isatty():
+                stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
+_configure_stdio()
 
 app = typer.Typer(
     name="kconv",

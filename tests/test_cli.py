@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -66,6 +69,21 @@ def test_web_requires_allow_remote_for_non_loopback_host(tmp_path, monkeypatch) 
     result = runner.invoke(app, ["web", "--host", "0.0.0.0", "--port", "0", "--no-open"])
     assert result.exit_code != 0
     assert "--allow-remote" in result.output
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows code-page handling")
+def test_help_survives_legacy_windows_code_page(tmp_path) -> None:
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "cp1252"
+    env.pop("PYTHONUTF8", None)
+    result = subprocess.run(
+        [sys.executable, "-m", "kconv", "--help"],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
 
 
 def test_json_commands_are_ascii_safe() -> None:
