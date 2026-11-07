@@ -54,19 +54,18 @@ from kconv.state import PipelineState, read_latest_pointer
 
 
 def _configure_stdio() -> None:
-    """Keep redirected Windows output from failing on non-ASCII help text.
+    """Keep Windows CLI output from failing on non-ASCII help text.
 
-    Python falls back to the ANSI code page for pipes and files, and the
-    Russian command descriptions cannot be encoded in cp1252.  Interactive
-    consoles keep their native encoding; only redirected streams switch to
-    UTF-8 so Rich/Typer help never raises UnicodeEncodeError.
+    Python may pick the ANSI code page for stdout even when it looks like a
+    terminal (for example under Git Bash), and the Russian command
+    descriptions cannot be encoded in cp1252.  UTF-8 is also what Python uses
+    for real Windows consoles, so reconfiguring is a no-op there.
     """
     if sys.platform != "win32":
         return
     for stream in (sys.stdout, sys.stderr):
         try:
-            if not stream.isatty():
-                stream.reconfigure(encoding="utf-8", errors="replace")
+            stream.reconfigure(encoding="utf-8", errors="replace")
         except (AttributeError, ValueError, OSError):
             pass
 

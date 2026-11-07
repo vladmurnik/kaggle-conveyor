@@ -14,7 +14,7 @@ import pytest
 import typer
 from typer.testing import CliRunner
 
-from kconv.cli import app
+from kconv.cli import _configure_stdio, app
 from kconv.config import load_config
 
 
@@ -84,6 +84,31 @@ def test_help_survives_legacy_windows_code_page(tmp_path) -> None:
         check=False,
     )
     assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+
+
+class _FakeConsoleStream:
+    def __init__(self) -> None:
+        self.reconfigured: dict[str, str] | None = None
+
+    def isatty(self) -> bool:
+        return True
+
+    def reconfigure(self, **kwargs: str) -> None:
+        self.reconfigured = kwargs
+
+
+def test_configure_stdio_reconfigures_windows_streams(monkeypatch) -> None:
+    stdout = _FakeConsoleStream()
+    stderr = _FakeConsoleStream()
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "stderr", stderr)
+
+    _configure_stdio()
+
+    expected = {"encoding": "utf-8", "errors": "replace"}
+    assert stdout.reconfigured == expected
+    assert stderr.reconfigured == expected
 
 
 def test_json_commands_are_ascii_safe() -> None:
