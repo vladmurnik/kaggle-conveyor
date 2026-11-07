@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py3.12
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install
+        run: uv sync --extra dev
+      - name: Tests
+        run: uv run pytest -q
+      - name: Lint
+        run: uv run ruff check src tests scripts examples
+      - name: Catalog sync
+        run: uv run python scripts/generate_experiments_catalog.py --check
+      - name: Build
+        run: uv build
+      - name: Wheel install smoke
+        shell: bash
+        run: |
+          rm -rf wheeltest
+          uv pip install --target wheeltest dist/*.whl
+          PYTHONPATH=wheeltest python -c "import kconv, kconv.cli, kconv.features.fold_plan; print('wheel import ok', kconv.__version__)"
+          PYTHONPATH=wheeltest python -m kconv --help > /dev/null

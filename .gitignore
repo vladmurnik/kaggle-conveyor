@@ -1,0 +1,37 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# kconv runtime data and generated artifacts
+data/
+runs/
+competitions/
+packages/
+inference/
+.cache/
+reports/
+*.tmp
+
+# Local credentials and environment
+.env
+.env.*
+!.env.example
+
+# Local LLM binaries and launchers
+llama-*/
+start-llama.bat
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
