@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+import typer
 from typer.testing import CliRunner
 
 from kconv.cli import app
@@ -53,13 +54,14 @@ def test_help_and_lists() -> None:
 
 def test_web_requires_allow_remote_for_non_loopback_host(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
-    # Rich truncates the options table on very narrow terminals (CI defaults
-    # to 40 columns), so pin the width before rendering help.
-    monkeypatch.setenv("COLUMNS", "120")
     runner = CliRunner()
-    help_result = runner.invoke(app, ["web", "--help"])
-    assert help_result.exit_code == 0, help_result.output
-    assert "--allow-remote" in help_result.output
+
+    # Check the Click command model instead of rendered help: Rich wraps and
+    # truncates the options table differently depending on terminal width and
+    # CI environment variables (GitHub Actions forces its own console setup).
+    web_command = typer.main.get_command(app).commands["web"]
+    option_names = {opt for param in web_command.params for opt in param.opts}
+    assert "--allow-remote" in option_names
 
     result = runner.invoke(app, ["web", "--host", "0.0.0.0", "--port", "0", "--no-open"])
     assert result.exit_code != 0
