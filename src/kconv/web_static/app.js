@@ -34,6 +34,10 @@ const state = {
   logLevel: "",
   logQuery: "",
   queueFilter: "all",
+  prefs: null,
+  prefsReady: false,
+  prefsTimer: null,
+  navObserver: null,
   llm: {
     plan: null,
     busy: false,
@@ -1603,6 +1607,7 @@ function updateRunEnabled() {
   $("#variant-clear").disabled = !state.variants.length;
   updatePipelinePresetNote();
   updateKaggleEnabled();
+  syncRunDock();
 }
 
 function isBusy() {
@@ -2446,6 +2451,163 @@ function debounceDetect() {
   }, 280);
 }
 
+const PREFS_KEY = "kconv.prefs.v1";
+
+function readPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function savePrefs() {
+  if (!state.prefsReady) return;
+  clearTimeout(state.prefsTimer);
+  state.prefsTimer = setTimeout(() => {
+    const stored = readPrefs() || {};
+    const prefs = {
+      ...stored,
+      target: $("#target").value,
+      idCol: $("#id-col").value,
+      task: $("#task").value,
+      metric: $("#metric").value,
+      recipe: $("#recipe").value,
+      strategy: $("#strategy").value,
+      profile: $("#profile").value,
+      samplePct: $("#sample-pct").value,
+      untilFull: $("#until-full").checked,
+    };
+    if (!prefs.target) delete prefs.target;
+    if (!prefs.idCol) delete prefs.idCol;
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    } catch (_) {
+      /* storage may be unavailable; preferences are optional */
+    }
+  }, 200);
+}
+
+function setSelectValue(selector, value) {
+  if (!value) return false;
+  const select = $(selector);
+  if (!select) return false;
+  const match = Array.from(select.options).some((option) => option.value === value);
+  if (!match) return false;
+  select.value = value;
+  return true;
+}
+
+function applyPrefsStatic() {
+  state.prefs = readPrefs();
+  if (!state.prefs) return;
+  const prefs = state.prefs;
+  setSelectValue("#strategy", prefs.strategy);
+  setSelectValue("#profile", prefs.profile);
+  if (setSelectValue("#task", prefs.task)) syncTaskOptions(false);
+  setSelectValue("#metric", prefs.metric);
+  if (prefs.samplePct) $("#sample-pct").value = prefs.samplePct;
+  if (typeof prefs.untilFull === "boolean") $("#until-full").checked = prefs.untilFull;
+  if (setSelectValue("#recipe", prefs.recipe)) {
+    renderRecipeCard();
+    applyRecipeModels({ announce: false });
+  }
+  refreshModels();
+}
+
+function applyPrefsDataset(attempt = 0) {
+  const prefs = state.prefs;
+  if (!prefs || !prefs.target) return;
+  const target = $("#target");
+  if (!target.options.length) {
+    if (attempt < 24) setTimeout(() => applyPrefsDataset(attempt + 1), 250);
+    return;
+  }
+  if (!state.manualTarget && setSelectValue("#target", prefs.target)) {
+    state.manualTarget = true;
+  }
+  if (prefs.idCol) setSelectValue("#id-col", prefs.idCol);
+}
+
+function resetPrefs() {
+  try {
+    localStorage.removeItem(PREFS_KEY);
+    localStorage.removeItem("kconv.project");
+  } catch (_) {
+    /* ignore unavailable storage */
+  }
+  toast("Сохранённые настройки очищены, страница перезагрузится");
+  setTimeout(() => window.location.reload(), 400);
+}
+
+function syncRunDock() {
+  const dock = $("#run-dock");
+  if (!dock) return;
+  const source = $("#run-status-badge");
+  const badge = $("#dock-badge");
+  if (source && badge) badge.className = source.className;
+  const meta = $("#dock-meta");
+  if (meta) {
+    const text = $("#run-meta") ? $("#run-meta").textContent.trim() : "";
+    meta.textContent = text || "Готов к запуску";
+  }
+  const run = $("#run");
+  const stop = $("#stop");
+  if (run && $("#dock-run")) $("#dock-run").disabled = run.disabled;
+  if (stop && $("#dock-stop")) $("#dock-stop").disabled = stop.disabled;
+  const status = state.currentStatus || "idle";
+  document.title = status === "running" || status === "starting"
+    ? "kconv studio — running"
+    : "kconv studio";
+  updateDockVisibility();
+}
+
+function updateDockVisibility() {
+  const dock = $("#run-dock");
+  if (!dock) return;
+  const show = isBusy() || window.scrollY > 560;
+  document.body.classList.toggle("dock-visible", show);
+}
+
+function initSectionNav() {
+  const links = $$("#section-nav a[data-target]");
+  if (!links.length) return;
+  links.forEach((link) => {
+    link.addEventListener("click", () => {
+      links.forEach((item) => item.classList.toggle("active", item === link));
+    });
+  });
+  if (!("IntersectionObserver" in window)) return;
+  const targets = links
+    .map((link) => ({ link, node: document.getElementById(link.dataset.target) }))
+    .filter((item) => item.node);
+  if (!targets.length) return;
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        links.forEach((link) => {
+          link.classList.toggle("active", link.dataset.target === entry.target.id);
+        });
+      });
+    },
+    { rootMargin: "-42% 0px -52% 0px", threshold: 0 },
+  );
+  targets.forEach((item) => observer.observe(item.node));
+  state.navObserver = observer;
+}
+
+function initShortcuts() {
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || (!event.ctrlKey && !event.metaKey)) return;
+    const run = $("#run");
+    if (!run || run.disabled) return;
+    event.preventDefault();
+    startRun();
+  });
+}
+
 function bindEvents() {
   $("#refresh").addEventListener("click", async () => {
     try {
@@ -2638,6 +2800,21 @@ function bindEvents() {
   bindDropzone("train", "#file-train", "#drop-train");
   bindDropzone("test", "#file-test", "#drop-test");
   bindDropzone("sample", "#file-sample", "#drop-sample");
+  ["#target", "#id-col", "#task", "#metric", "#recipe", "#strategy", "#profile", "#sample-pct", "#until-full"].forEach((selector) => {
+    const node = $(selector);
+    if (node) node.addEventListener("change", savePrefs);
+  });
+  $("#project").addEventListener("input", savePrefs);
+  $("#dock-run").addEventListener("click", startRun);
+  $("#dock-stop").addEventListener("click", stopRun);
+  $("#dock-results").addEventListener("click", () => {
+    const results = $("#section-results");
+    if (results) results.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("#reset-config").addEventListener("click", resetPrefs);
+  window.addEventListener("scroll", updateDockVisibility, { passive: true });
+  initSectionNav();
+  initShortcuts();
 }
 
 async function init() {
@@ -2654,7 +2831,10 @@ async function init() {
   }
   try {
     await loadConfig();
+    applyPrefsStatic();
     await Promise.all([refreshDataset(), refreshStats()]);
+    applyPrefsDataset();
+    state.prefsReady = true;
     await restoreLlmPlan();
     const savedCompetition = localStorage.getItem("kconv.kaggle.competition");
     if (savedCompetition && !$("#kaggle-competition").value) {

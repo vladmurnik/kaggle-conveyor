@@ -27,6 +27,23 @@
       </div>
     </header>
 
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+
+  <nav class="section-nav" id="section-nav" aria-label="Разделы страницы">
+    <div class="section-nav-inner">
+      <a href="#section-data" data-target="section-data"><span>01</span>Данные</a>
+      <a href="#section-setup" data-target="section-setup"><span>03</span>Настройка</a>
+      <a href="#section-variants" data-target="section-variants"><span>04</span>Варианты</a>
+      <a href="#section-run" data-target="section-run"><span>05</span>Запуск</a>
+      <a href="#section-results" data-target="section-results"><span>06</span>Результат</a>
+      <a href="#section-compare" data-target="section-compare"><span>08</span>Сравнение</a>
+      <a href="#section-report" data-target="section-report"><span>09</span>Отчёт</a>
+      <a href="#kaggle-card" data-target="kaggle-card"><span>10</span>Kaggle</a>
+      <button class="nav-reset" id="reset-config" type="button">Сброс настроек</button>
+    </div>
+  </nav>
+
     <section class="hero">
       <div class="hero-copy">
         <div class="eyebrow">train → CV → submission</div>
@@ -56,7 +73,7 @@
     </section>
 
     <div class="layout-main">
-      <section class="card data-card">
+      <section class="card data-card" id="section-data">
         <div class="card-head">
           <div>
             <div class="step">01 / данные</div>
@@ -112,7 +129,7 @@
         </div>
       </section>
 
-      <section class="card setup-card">
+      <section class="card setup-card" id="section-setup">
         <div class="card-head">
           <div>
             <div class="step">03 / настройка</div>
@@ -398,12 +415,13 @@ ollama pull qwen2.5-coder:7b</code></pre>
         <div class="run-actions">
           <button class="button primary" id="run" type="button">Запустить конвейер</button>
           <button class="button danger" id="stop" type="button" disabled>Стоп</button>
+          <span class="shortcut-hint" aria-hidden="true"><kbd>Ctrl</kbd><span>+</span><kbd>Enter</kbd></span>
         </div>
         <div class="hint" id="run-hint">Сначала загрузите train. Остальное kconv определит сам.</div>
       </section>
     </div>
 
-    <section class="card variant-card">
+    <section class="card variant-card" id="section-variants">
       <div class="card-head">
         <div>
           <div class="step">04 / варианты</div>
@@ -463,7 +481,7 @@ ollama pull qwen2.5-coder:7b</code></pre>
 <div class="queue-list" id="queue-list"></div>
     </section>
 
-    <section class="card progress-card">
+    <section class="card progress-card" id="section-run">
       <div class="card-head">
         <div>
           <div class="step">05 / выполнение</div>
@@ -506,7 +524,7 @@ ollama pull qwen2.5-coder:7b</code></pre>
     </section>
 
     <div class="layout-results">
-      <section class="card results-card">
+      <section class="card results-card" id="section-results">
         <div class="card-head">
           <div>
             <div class="step">06 / результат</div>
@@ -555,7 +573,7 @@ ollama pull qwen2.5-coder:7b</code></pre>
       </section>
     </div>
 
-    <section class="card comparison-card">
+    <section class="card comparison-card" id="section-compare">
       <div class="card-head">
         <div>
           <div class="step">08 / сравнение</div>
@@ -578,7 +596,7 @@ ollama pull qwen2.5-coder:7b</code></pre>
       </div>
     </section>
 
-    <section class="card report-card">
+    <section class="card report-card" id="section-report">
       <div class="card-head">
         <div>
           <div class="step">09 / отчёт</div>
@@ -654,6 +672,18 @@ ollama pull qwen2.5-coder:7b</code></pre>
       <span>kconv studio</span>
       <span class="mono">127.0.0.1 · upload только по кнопке</span>
     </footer>
+  </div>
+
+  <div class="run-dock" id="run-dock" role="region" aria-label="Управление запуском">
+    <div class="run-dock-state">
+      <span class="run-badge idle" id="dock-badge">idle</span>
+      <span class="run-dock-meta" id="dock-meta">Готов к запуску</span>
+    </div>
+    <div class="run-dock-actions">
+      <button class="button ghost compact" id="dock-results" type="button">К результатам</button>
+      <button class="button primary compact" id="dock-run" type="button">Запустить</button>
+      <button class="button danger compact" id="dock-stop" type="button" disabled>Стоп</button>
+    </div>
   </div>
 
   <div class="toast" id="toast" role="status"></div>

@@ -1573,3 +1573,38 @@ def test_recover_stale_runs_scans_projects(tmp_path: Path, monkeypatch) -> None:
     assert calls == [("demo", "run-1")]
     assert refreshed == ["demo"]
     assert result == [{"project": "demo", "run_id": "run-1", "status": "interrupted"}]
+
+
+def test_web_ux_scaffolding_is_present() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1] / "src" / "kconv" / "web_static"
+    html = (root / "index.html").read_text(encoding="utf-8")
+    script = (root / "app.js").read_text(encoding="utf-8")
+    styles = (root / "app.css").read_text(encoding="utf-8")
+
+    for anchor in (
+        'id="section-nav"',
+        'id="run-dock"',
+        'id="dock-run"',
+        'id="dock-stop"',
+        'id="dock-results"',
+        'id="reset-config"',
+        'id="section-data"',
+        'id="section-setup"',
+        'id="section-results"',
+        'id="section-compare"',
+    ):
+        assert anchor in html, anchor
+
+    assert "function applyPrefsStatic()" in script
+    assert "function applyPrefsDataset(" in script
+    assert "function initShortcuts()" in script
+    assert "function initSectionNav()" in script
+    assert "function syncRunDock()" in script
+    assert "localStorage.setItem(PREFS_KEY" in script
+
+    assert ".section-nav" in styles
+    assert ".run-dock" in styles
+    assert ":focus-visible" in styles
+

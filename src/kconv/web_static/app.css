@@ -1491,3 +1491,158 @@ footer {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- UX pass: sticky navigation, run dock, focus and scrollbars ---------- */
+.ambient { pointer-events: none; }
+
+.section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  margin: 14px 0 18px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(11, 15, 20, 0.78);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+}
+.section-nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.section-nav-inner::-webkit-scrollbar { display: none; }
+.section-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 7px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.16s ease, background 0.16s ease;
+}
+.section-nav a span {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+.section-nav a:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
+.section-nav a.active { color: var(--mint); background: var(--mint-dim); }
+.section-nav a.active span { color: var(--mint); }
+.nav-reset {
+  margin-left: auto;
+  flex: none;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.nav-reset:hover { color: var(--text); border-color: var(--line-strong); }
+
+section[id] { scroll-margin-top: 84px; }
+
+.shortcut-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--faint);
+  font-size: 11px;
+  white-space: nowrap;
+}
+kbd {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 2px 5px;
+  border: 1px solid var(--line);
+  border-bottom-color: var(--line-strong);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+}
+
+.run-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: min(1320px, calc(100% - 32px));
+  padding: 10px 12px 10px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: rgba(13, 19, 26, 0.92);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  transform: translate(-50%, 130%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+.dock-visible .run-dock { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.run-dock-state { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.run-dock-meta {
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.run-dock-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.run-dock .button { flex: none; }
+.dock-visible .toast { bottom: 92px; }
+
+:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.button:focus-visible, .section-nav a:focus-visible { outline-offset: 3px; }
+
+.card { transition: border-color 0.18s ease, box-shadow 0.18s ease; }
+.card:hover { border-color: var(--line-strong); }
+
+* { scrollbar-width: thin; scrollbar-color: rgba(160, 185, 210, 0.25) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(160, 185, 210, 0.22);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(160, 185, 210, 0.36); background-clip: padding-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+@media (max-width: 760px) {
+  .section-nav { border-radius: 14px; margin: 10px 0 14px; }
+  .nav-reset { display: none; }
+  .shortcut-hint { display: none; }
+  .run-dock { bottom: 10px; padding: 9px 10px; gap: 8px; border-radius: 14px; }
+  .run-dock-meta { display: none; }
+  .run-dock .button { padding: 9px 12px; font-size: 12px; }
+  .dock-visible .toast { bottom: 78px; }
+}
+
+@media (max-width: 480px) {
+  .run-dock-actions .button.ghost { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .run-dock { transition: none; }
+  .section-nav a, .card { transition: none; }
+}
