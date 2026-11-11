@@ -8,14 +8,23 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
-`kconv` takes a tabular dataset and a declarative recipe, runs an honest
-cross-validation pipeline, and produces a validated `submission.csv` plus a
-reproducible run directory. Everything runs on your machine: no hosted
-service, no notebook glue, and no hidden state.
+`kconv` is a command-line tool and a local web studio for tabular machine
+learning. Point it at a folder with `train.csv` and `test.csv`: it profiles the
+data, detects the target, id column, task and metric, builds leakage-safe
+features, runs cross-validation, trains and blends several models, and writes a
+`submission.csv` together with a reproducible run report.
 
-The project is intentionally narrow. It is built for tabular Kaggle-style
-tasks (binary classification, multiclass classification, and regression), not
-for NLP, computer vision, or online serving.
+**Why it exists:** the routine part of every tabular competition is the same —
+study the columns, encode categories without leakage, set up folds, train a
+baseline, compare variants, and remember which run produced which score.
+`kconv` packages that routine into declarative recipes and recorded runs, so
+you spend your time on the data and the model instead of the plumbing.
+
+It is intentionally narrow: binary/multiclass classification and regression on
+tabular data — not NLP, computer vision, or online serving. It is also local and
+safe by design: no hosted service, no data upload, and no third-party Python
+execution. Recipes are YAML, and every run keeps its config, metrics and
+artifacts.
 
 > **Status:** alpha (`0.1.0`). The CLI and Python API are usable, but minor
 > breaking changes are still possible before `1.0`.
