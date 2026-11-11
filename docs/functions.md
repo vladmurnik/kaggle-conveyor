@@ -28,7 +28,7 @@ from kconv.api import KConv
 | `kconv run --no-run` | Только создать `config.yaml`. |
 | `kconv new` | Интерактивный мастер: данные → target → recipe → strategy → models. |
 | `kconv web` | Локальный браузерный UI: загрузка train/test, настройка и запуск через тот же CLI. |
-| `kconv recipes` | Список 55 recipes: 16 presets + 39 executable pipelines. |
+| `kconv recipes` | Список 65 recipes: 16 presets + 49 executable pipelines. |
 | `kconv recipes --kind preset\|pipeline` | Фильтр по виду recipe. |
 | `kconv recipes show ID` | Kind, lineage, blocks, defaults, источник, лицензия и attribution. |
 | `kconv recipes audit [--strict] [--json]` | Нормализованные подписи и дубли; strict запрещает одинаковые executable pipelines. |
@@ -121,7 +121,7 @@ pred = adapter.predict(X_test)
 
 ### `list_pipelines(*, task=None, group=None, kind=None) -> list[PipelineInfo]`
 
-Список 55 entries: 16 presets + 39 pipelines. `kind` — `preset` или `pipeline`;
+Список 65 entries: 16 presets + 49 pipelines. `kind` — `preset` или `pipeline`;
 `group` — `baseline`, `ensemble`, `engineering`, `architecture`. Неизвестный
 `kind`/`task` → `KconvError`.
 

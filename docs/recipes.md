@@ -9,8 +9,8 @@ Recipe — декларативное описание запуска. Чужо�
   (`pipeline.blocks`) плюс defaults. Порядок блоков фиксирован, блоки
   проверяются до запуска.
 
-Все 16 исходных recipes сохранены как presets. Тридцать девять executable
-pipelines выведены из них и указывают `derived_from`; всего в каталоге 55
+Все 16 исходных recipes сохранены как presets. Сорок девять executable
+pipelines выведены из них и указывают `derived_from`; всего в каталоге 65
 recipes. Preset с тем же поведением, что и pipeline, — это осознанная
 историческая вариация; два pipeline с одинаковой подписью запрещены в
 strict-аудите.
@@ -80,7 +80,7 @@ recipes поддерживают все три задачи; модели, не�
 Для источников без LICENSE или с GPL код не копируется. Recipe — это
 переписанная методология и ссылка на автора; см. поле `attribution`.
 
-## Executable pipelines (39)
+## Executable pipelines (49)
 
 | id | derived_from | Блоки | Модели / ensemble |
 | --- | --- | --- | --- |
@@ -123,6 +123,16 @@ recipes поддерживают все три задачи; модели, не�
 | `pipeline/kozodoi-hash-missing-numeric` | `kozodoi/tabular` | base(max_categories=100) → hash_encoding(32) → missingness(indicators/row/zero) → numeric_interactions(6 pairs: product/ratio) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/CatBoost, weighted |
 | `pipeline/arnabbiswas-mutual-profile` | `arnabbiswas1/staged` | base → numeric_interactions(6 pairs: product/ratio/difference) → row_statistics(mean/std/min/max) → target(smoothing=10) → frequency → feature_selection(mutual_info, 30) | LGBM/XGB, weighted |
 | `pipeline/kconv-modulo-anomaly` | `kconv/sklearn-diverse` | base(scale=standard) → modulo(moduli 10/100, steps 5) → anomaly(80 trees, auto contamination) → numeric_interactions(4 pairs: ratio/difference) → target(smoothing=10) → frequency → feature_selection(variance, 50) | LGBM/HistGB/RandomForest, weighted |
+| `pipeline/kconv-datetime-row-profile` | `cdeotte/tabular` | base → datetime_cyclical(month/dayofweek/dayofyear/hour) → row_statistics(mean/std/min/max/median) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/CatBoost, weighted |
+| `pipeline/kozodoi-hash-datetime` | `kozodoi/tabular` | base(max_categories=100) → hash_encoding(32) → datetime_cyclical(month/dayofweek/dayofyear) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/CatBoost, weighted |
+| `pipeline/kaggle-ieee-time-row-profile` | `kaggle-ieee/fraud-pipeline` | base(max_categories=100) → time_series(lags 1/2, windows 3/7, mean/std, elapsed+diff) → row_statistics(mean/std/min/max) → target(smoothing=20) → frequency → feature_selection(model_importance, 40) | LGBM/XGB, weighted |
+| `pipeline/ensemble-amazon-interaction-missing` | `ensemble-amazon/stacking` | base(max_categories=100) → categorical_interaction(target, 4 pairs) → missingness(indicators/row/zero) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/XGB/CatBoost/LogReg, stack |
+| `pipeline/knnfeat-hash-distance` | `knnfeat/knn-features` | base(max_categories=100) → hash_encoding(32) → knn_class_distance(3 neighbors) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/XGB, weighted; binary/multiclass only |
+| `pipeline/kaggle-ieee-missing-group` | `kaggle-ieee/fraud-pipeline` | base(max_categories=100) → missingness(indicators/row/zero) → group_statistics(mean/std/count, max 8 numeric) → target(smoothing=20) → frequency → feature_selection(model_importance, 40) | LGBM/XGB, weighted |
+| `pipeline/kozodoi-numeric-cluster` | `kozodoi/tabular` | base(max_categories=100) → numeric_interactions(6 pairs: product/ratio/difference) → clustering(8 clusters, distances only) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/CatBoost, weighted |
+| `pipeline/arnabbiswas-modulo-profile` | `arnabbiswas1/staged` | base → modulo(moduli 10/100, steps 5) → row_statistics(mean/std/min/max) → target(smoothing=10) → frequency → feature_selection(mutual_info, 30) | LGBM/XGB, weighted |
+| `pipeline/kconv-datetime-cluster` | `kconv/sklearn-diverse` | base(scale=standard) → datetime_cyclical(month/dayofweek/dayofyear/hour) → clustering(8 clusters, distances+labels) → anomaly(80 trees, auto contamination) → target(smoothing=10) → frequency → feature_selection(variance, 50) | LGBM/HistGB/RandomForest, weighted |
+| `pipeline/ensemble-amazon-time-interaction` | `ensemble-amazon/stacking` | base(max_categories=100) → time_series(lags 1/2, windows 3/7, mean/std, elapsed+diff) → categorical_interaction(frequency, 4 pairs) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/XGB/CatBoost/LogReg, stack |
 
 `columns: auto` в target/frequency/hash-блоках разрешается при создании проекта:
 kconv читает sample train, исключает ID/ignore и слишком редкие/уникальные

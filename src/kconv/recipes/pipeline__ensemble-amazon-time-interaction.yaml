@@ -1,0 +1,47 @@
+id: pipeline/ensemble-amazon-time-interaction
+kind: pipeline
+derived_from: ensemble-amazon/stacking
+title: ensemble-amazon time-interaction stack
+author: kaz-Anova
+source: https://github.com/kaz-Anova/ensemble_amazon
+license: Apache-2.0
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Stacked models on time-ordered categorical tables with frequency-encoded interactions."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb, catboost, logreg]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: time_series
+      params:
+        {
+          time_col: auto,
+          group_col: auto,
+          columns: auto,
+          lags: [1, 2],
+          windows: [3, 7],
+          stats: [mean, std],
+          include_elapsed: true,
+          include_diff: true,
+        }
+    - type: categorical_interaction
+      params: {columns: auto, max_pairs: 4, encoding: frequency}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Stacking and categorical-interaction ideas from kaz-Anova/ensemble_amazon (Apache-2.0); past-only time-series features, frequency-encoded interactions and stack implementation are original kconv, no source code copied."

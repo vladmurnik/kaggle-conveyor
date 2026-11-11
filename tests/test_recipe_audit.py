@@ -33,7 +33,7 @@ def _pipeline(recipe_id: str) -> Recipe:
 
 def test_audit_finds_known_preset_duplicates() -> None:
     result = audit_recipes()
-    assert result.kind_counts == {"pipeline": 39, "preset": 16}
+    assert result.kind_counts == {"pipeline": 49, "preset": 16}
     groups = {group.recipe_ids for group in result.duplicate_groups}
     assert ("cdeotte/tabular", "statsmaster/tabular") in groups
     assert (
@@ -67,6 +67,6 @@ def test_audit_payload_is_json_safe_and_signature_is_stable() -> None:
     assert json.loads(signature_key(recipe)) == signature
     payload = audit_recipes().to_dict()
     assert json.loads(json.dumps(payload, ensure_ascii=True))["kind_counts"] == {
-        "pipeline": 39,
+        "pipeline": 49,
         "preset": 16,
     }

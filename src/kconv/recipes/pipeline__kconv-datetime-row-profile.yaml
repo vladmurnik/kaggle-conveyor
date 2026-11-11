@@ -1,0 +1,36 @@
+id: pipeline/kconv-datetime-row-profile
+kind: pipeline
+derived_from: cdeotte/tabular
+title: kconv datetime-row profile pipeline
+author: Chris Deotte
+source: https://github.com/cdeotte/KGMON-Playbook-2026
+license: "NO LICENSE - ideas only"
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Datetime-rich tables where calendar cycles and row-level distribution shape both matter."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: datetime_cyclical
+      params: {columns: auto, periods: [month, dayofweek, dayofyear, hour]}
+    - type: row_statistics
+      params: {stats: [mean, std, min, max, median]}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Cyclical datetime and row-profile ideas adapted from Chris Deotte's KGMON playbook (no license, ideas only); all feature code is original kconv."

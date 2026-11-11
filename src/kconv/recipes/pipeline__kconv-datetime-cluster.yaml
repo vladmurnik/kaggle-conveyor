@@ -1,0 +1,49 @@
+id: pipeline/kconv-datetime-cluster
+kind: pipeline
+derived_from: kconv/sklearn-diverse
+title: kconv datetime-cluster pipeline
+author: kconv
+source: local
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Datetime tables where cyclical calendar features, cluster geometry and anomaly scores form a broad profile."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  models: [lgbm, histgb, random_forest_classifier, random_forest_regressor]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {scale: standard}
+    - type: datetime_cyclical
+      params: {columns: auto, periods: [month, dayofweek, dayofyear, hour]}
+    - type: clustering
+      params:
+        {
+          columns: auto,
+          n_clusters: 8,
+          max_iter: 100,
+          include_distances: true,
+          include_labels: true,
+          max_fit_rows: 50000,
+        }
+    - type: anomaly
+      params: {columns: auto, n_estimators: 80, contamination: auto, include_flag: true}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: variance, max_features: 50}
+attribution: "Original kconv catalog recipe; combines cyclical calendar features with fit-in-fold cluster distances, cluster labels and anomaly scores, no external source code copied."

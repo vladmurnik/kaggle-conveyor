@@ -1,0 +1,45 @@
+id: pipeline/kozodoi-numeric-cluster
+kind: pipeline
+derived_from: kozodoi/tabular
+title: Kozodoi numeric-cluster pipeline
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/Kaggle_Home_Credit
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Numeric tables where pairwise interactions and fit-in-fold cluster distances add complementary signal."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: numeric_interactions
+      params: {columns: auto, max_pairs: 6, operations: [product, ratio, difference]}
+    - type: clustering
+      params:
+        {
+          columns: auto,
+          n_clusters: 8,
+          max_iter: 100,
+          include_distances: true,
+          include_labels: false,
+          max_fit_rows: 50000,
+        }
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "High-cardinality and numeric feature-engineering ideas from kozodoi/Kaggle_Home_Credit (MIT); pairwise interactions, fit-in-fold cluster distances and encodings are original kconv implementations, no source code copied."

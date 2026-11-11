@@ -17,7 +17,7 @@
   `tabpfn` пропускается: 10% датасета больше безопасного лимита 8 000 строк;
   для него остаются отдельные тесты `tests/test_tabpfn.py`. Regression-only
   адаптеры не выбираются для этого target; они покрыты обычными unit-тестами.
-- Все 55 встроенных recipes (16 presets + 39 pipelines), совместимых с binary,
+- Все 65 встроенных recipes (16 presets + 49 pipelines), совместимых с binary,
   запускаются через настоящий `run_pipeline` до `report` на 10% train/test:
   `ingest → validate → hpo → train → blend → submit → report`.
   Для скорости smoke-прогон использует 2 folds и `adversarial=False`;
@@ -62,7 +62,7 @@ $env:KCONV_REAL_DATA_ID = "id"
 ## Матрица встроенных recipes
 
 `tests/test_pipeline_matrix.py` не требует реального датасета и проверяет все
-55 встроенных recipes (16 presets + 39 pipelines) на всех объявленных ими
+65 встроенных recipes (16 presets + 49 pipelines) на всех объявленных ими
 задачах; `knnfeat/knn-features` и `pipeline/knnfeat-class-distance`
 поддерживают только `binary` и `multiclass`. Матрица проверяет:
 

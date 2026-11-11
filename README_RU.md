@@ -25,7 +25,7 @@
 | --- | --- |
 | **Dataset-first** | Достаточно указать папку, CSV, parquet или zip. Target, id, задача и метрика могут определиться автоматически. |
 | **Честная валидация** | Fold-aware преобразования признаков, OOF-метрики, опциональная adversarial-диагностика train/test и явные CV-контракты. |
-| **Декларативные recipes** | 55 встроенных recipes: 16 presets и 39 executable pipelines. Чужой Python-код не исполняется. |
+| **Декларативные recipes** | 65 встроенных recipes: 16 presets и 49 executable pipelines. Чужой Python-код не исполняется. |
 | **Много моделей** | LightGBM, XGBoost, CatBoost, HistGradientBoosting, линейные модели, 44 оценки scikit-learn и опциональный TabPFN v2. |
 | **Локальная web-студия** | Загрузка данных, очередь запусков, сравнение, отчёты и отправка в Kaggle. Только стандартная библиотека; без Node и FastAPI. |
 | **Воспроизводимые артефакты** | Конфиг, фолды, метрики, OOF-предсказания, отчёт, state и offline-пакет с SHA256. |
@@ -202,7 +202,7 @@ web UI используют один и тот же индекс запуско�
 - **pipeline** — исполняемый упорядоченный список feature-блоков. Новые
   recipes обычно стоит делать именно pipeline.
 
-В каталоге **55 recipes**: 16 presets и 39 pipelines. Примеры команд:
+В каталоге **65 recipes**: 16 presets и 49 pipelines. Примеры команд:
 
 ```bash
 uv run kconv recipes

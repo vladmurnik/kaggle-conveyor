@@ -1,0 +1,37 @@
+id: pipeline/knnfeat-hash-distance
+kind: pipeline
+derived_from: knnfeat/knn-features
+title: knnFeat hash-distance pipeline
+author: Shotaro Ishihara (upura)
+source: https://github.com/upura/knnFeat
+license: MIT
+group: engineering
+tasks: [binary, multiclass]
+best_for: "Classification with high-cardinality categories and class-conditional kNN distances."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: hash_encoding
+      params: {columns: auto, n_features: 32}
+    - type: knn_class_distance
+      params: {neighbors: 3, folds: 5, max_reference_rows: 50000}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Class-distance method adapted from upura/knnFeat (MIT); hash encoding and fit-in-fold kNN OOF distances are original kconv implementations, no source code copied."

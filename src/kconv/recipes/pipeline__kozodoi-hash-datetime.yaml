@@ -1,0 +1,37 @@
+id: pipeline/kozodoi-hash-datetime
+kind: pipeline
+derived_from: kozodoi/tabular
+title: Kozodoi hash-datetime pipeline
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/Kaggle_Home_Credit
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "High-cardinality datetime tables that need compact hashing plus cyclical calendar signals."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: hash_encoding
+      params: {columns: auto, n_features: 32}
+    - type: datetime_cyclical
+      params: {columns: auto, periods: [month, dayofweek, dayofyear]}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "High-cardinality and datetime workflow ideas from kozodoi/Kaggle_Home_Credit (MIT); hashing, cyclical calendar features and fold-fitted encodings are original kconv implementations, no source code copied."
