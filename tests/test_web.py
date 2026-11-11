@@ -1607,4 +1607,3 @@ def test_web_ux_scaffolding_is_present() -> None:
     assert ".section-nav" in styles
     assert ".run-dock" in styles
     assert ":focus-visible" in styles
-
