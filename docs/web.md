@@ -64,7 +64,7 @@ http://127.0.0.1:8765/
    в блоке «Очередь запусков»: меняйте strategy/profile/recipe/модели и
    добавляйте текущую настройку. Селект «Готовый набор pipelines» выделяет
    сразу группу: быстрый старт, быстрые/сбалансированные/тяжёлые наборы,
-   категориальные, временные, кластерные, ансамблевые или все 29 pipelines.
+   категориальные, временные, кластерные, ансамблевые или все 39 pipelines.
    В селекте «Пакет pipelines» можно вручную отметить несколько executable
    pipelines (Ctrl/Cmd); они получат текущие модели, strategy, profile и
    LLM-план. Количество вариантов не ограничено;
@@ -118,7 +118,7 @@ uv run kconv web --data C:\datasets\house-prices --port 9000
 - **Задача** — `auto`, `binary`, `multiclass`, `regression`. Для target с
   двумя классами `multiclass` недоступен: сервер отклонит такую комбинацию.
 - **Метрика** — `auto` или конкретная метрика из `kconv metrics`.
-- **Recipe** — один из 45 entries: 16 presets и 29 executable pipelines.
+- **Recipe** — один из 55 entries: 16 presets и 39 executable pipelines.
   Селект сгруппирован по kind (`pipeline` сверху, `preset` ниже). Карточка
   показывает kind, lineage, blocks, модели, folds, ensemble и HPO defaults;
   при выборе recipe модели автоматически заменяются на task-compatible и
@@ -127,7 +127,7 @@ uv run kconv web --data C:\datasets\house-prices --port 9000
 - **Готовый набор pipelines** — курируемые группы в блоке очереди:
   `starter` (3 простых pipeline для первого прогона), `fast`,
   `balanced`, `quality` (тяжёлые стеки/ансамбли), специализированные
-  `categorical`, `time`, `cluster_anomaly`, `ensemble` и `all` (все 29).
+  `categorical`, `time`, `cluster_anomaly`, `ensemble` и `all` (все 39).
   Выбор набора сразу отмечает его pipelines в multi-select; ручная правка
   переводит селект в «свой выбор». Наборы только ссылаются на существующие
   recipe id и не меняют их defaults. API отдаёт их в `/api/config` как

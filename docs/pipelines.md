@@ -118,7 +118,7 @@ fold (не более `max_fit_rows` строк) и отдаёт расстоя�
 только строки не позже текущей; для validation/test он дополняет их
 сохранённым history-tail.
 
-## Каталог pipelines (29)
+## Каталог pipelines (39)
 
 | id | derived_from | Блоки | Модели / ensemble |
 | --- | --- | --- | --- |
@@ -151,6 +151,45 @@ fold (не более `max_fit_rows` строк) и отдаёт расстоя�
 | `pipeline/sergeyshilin-anomaly-contracts` | `sergeyshilin/contracts` | base → anomaly(100 trees, contamination=0.05) → numeric_interactions(4 pairs: ratio/difference) → target → frequency → feature_selection(model_importance, 30) | LGBM/CatBoost/LogReg, mean; adversarial threshold 0.8 |
 | `pipeline/dptools-cluster-profile` | `dptools/row-features` | base → clustering(6 clusters, distances+labels) → row_statistics(mean/std/min/max/median) → target → frequency → feature_selection(model_importance, 40) | LGBM/CatBoost, weighted |
 | `pipeline/kconv-unsupervised-profile` | `kconv/sklearn-diverse` | base(scale=standard) → numeric_interactions(6 pairs: product/ratio/difference/sum) → clustering(8 clusters, distances only) → anomaly(80 trees) → feature_selection(variance, 50) | LGBM/HistGB/RandomForest, weighted |
+| `pipeline/kconv-missing-row-profile` | `dptools/row-features` | base → missingness(indicators/row/zero) → row_statistics(mean/std/min/max/median) → numeric_interactions(6 pairs: product/ratio/difference) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/CatBoost, weighted |
+| `pipeline/kozodoi-hash-group-profile` | `kozodoi/tabular` | base(max_categories=100) → hash_encoding(32) → group_statistics(mean/std/count, max 8 numeric) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/CatBoost, weighted |
+| `pipeline/cdeotte-datetime-numeric` | `cdeotte/tabular` | base → datetime_cyclical(month/dayofweek/dayofyear) → numeric_interactions(6 pairs: product/ratio/difference/sum) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/XGB/CatBoost, weighted |
+| `pipeline/kaggle-ieee-time-group` | `kaggle-ieee/fraud-pipeline` | base(max_categories=100) → time_series(lags 1/2, windows 3/7, mean/std, elapsed+diff) → group_statistics(mean/std/count, max 8 numeric) → target(smoothing=20) → frequency → feature_selection(model_importance, 40) | LGBM/XGB, weighted |
+| `pipeline/ensemble-amazon-interaction-group` | `ensemble-amazon/stacking` | base(max_categories=100) → categorical_interaction(target, 4 pairs) → group_statistics(mean/std/count, max 8 numeric) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/XGB/CatBoost/LogReg, stack |
+| `pipeline/knnfeat-cluster-anomaly` | `knnfeat/knn-features` | base → clustering(8 clusters, distances only) → anomaly(100 trees, auto contamination) → knn_class_distance(3 neighbors) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/XGB, weighted; binary/multiclass only |
+| `pipeline/kaggle-ieee-missing-cluster` | `kaggle-ieee/fraud-pipeline` | base(max_categories=100) → missingness(indicators/row/zero) → datetime_cyclical(month/dayofweek/hour) → clustering(8 clusters, distances only) → target(smoothing=20) → frequency → feature_selection(model_importance, 40) | LGBM/XGB, weighted |
+| `pipeline/kozodoi-hash-missing-numeric` | `kozodoi/tabular` | base(max_categories=100) → hash_encoding(32) → missingness(indicators/row/zero) → numeric_interactions(6 pairs: product/ratio) → target(smoothing=10) → frequency → feature_selection(model_importance, 40) | LGBM/CatBoost, weighted |
+| `pipeline/arnabbiswas-mutual-profile` | `arnabbiswas1/staged` | base → numeric_interactions(6 pairs: product/ratio/difference) → row_statistics(mean/std/min/max) → target(smoothing=10) → frequency → feature_selection(mutual_info, 30) | LGBM/XGB, weighted |
+| `pipeline/kconv-modulo-anomaly` | `kconv/sklearn-diverse` | base(scale=standard) → modulo(moduli 10/100, steps 5) → anomaly(80 trees, auto contamination) → numeric_interactions(4 pairs: ratio/difference) → target(smoothing=10) → frequency → feature_selection(variance, 50) | LGBM/HistGB/RandomForest, weighted |
+
+## Партия 2026-11-11: профили, хеши и кросс-блоки
+
+Десять новых executable pipelines закрывают комбинации, которых не было в
+каталоге: missingness + row profile, hash + group statistics, datetime +
+numeric interactions, time series + group statistics, categorical interaction +
+group statistics, kNN + cluster/anomaly, missingness + datetime + clustering,
+hash + missingness + numeric, mutual-information profile и modulo + anomaly.
+
+- `pipeline/kconv-missing-row-profile` — missingness, row statistics и numeric
+  interactions перед target/frequency encoding.
+- `pipeline/kozodoi-hash-group-profile` — компактный hash для высокой
+  кардинальности плюс group mean/std/count.
+- `pipeline/cdeotte-datetime-numeric` — циклический календарь и произведения/
+  отношения числовых колонок.
+- `pipeline/kaggle-ieee-time-group` — past-only time series и group aggregates
+  в одном pipeline.
+- `pipeline/ensemble-amazon-interaction-group` — target-encoded categorical
+  interactions и group aggregates для stack.
+- `pipeline/knnfeat-cluster-anomaly` — cluster distances, anomaly score и
+  class-conditional kNN для classification.
+- `pipeline/kaggle-ieee-missing-cluster` — missingness, datetime cyclicity и
+  cluster distances для широких таблиц.
+- `pipeline/kozodoi-hash-missing-numeric` — hash, missingness и numeric ratios
+  перед target/frequency encoding.
+- `pipeline/arnabbiswas-mutual-profile` — row profile и mutual-information
+  selection для компактного набора признаков.
+- `pipeline/kconv-modulo-anomaly` — modulo/divisibility, anomaly score и
+  numeric ratios с variance selection.
 
 ## Новые техники партии 2026-10-26
 

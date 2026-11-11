@@ -4,7 +4,7 @@
 использует CLI. Через него можно:
 
 - посмотреть все 51 модель и выбрать совместимые с задачей (50 базовых + optional `tabpfn`);
-- получить 45 recipes: 16 presets и 29 executable pipelines;
+- получить 55 recipes: 16 presets и 39 executable pipelines;
 - исследовать 1173 проиндексированных источника `kaggle-toolkit`;
 - смотреть 25 экспериментов и 5 runtime-профилей;
 - собрать проект и запустить полный конвейер из Python;
@@ -88,9 +88,9 @@ prediction = adapter.predict(X_test)
 ```python
 from kconv.api import get_pipeline, list_pipelines
 
-recipes = list_pipelines()                 # 45
+recipes = list_pipelines()                 # 55
 presets = list_pipelines(kind="preset")    # 16
-pipelines = list_pipelines(kind="pipeline")  # 29
+pipelines = list_pipelines(kind="pipeline")  # 39
 ensembles = list_pipelines(group="ensemble")  # 19
 regression = list_pipelines(task="regression")
 

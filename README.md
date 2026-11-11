@@ -26,7 +26,7 @@ for NLP, computer vision, or online serving.
 | --- | --- |
 | **Dataset-first** | Point it at a folder, CSV, parquet, or zip. Target, id, task, and metric can be detected automatically. |
 | **Honest validation** | Fold-aware feature transforms, out-of-fold metrics, optional adversarial train/test diagnostics, and explicit CV contracts. |
-| **Declarative recipes** | 45 built-in recipes: 16 presets and 29 executable pipelines. No third-party Python is executed. |
+| **Declarative recipes** | 55 built-in recipes: 16 presets and 39 executable pipelines. No third-party Python is executed. |
 | **Many models** | LightGBM, XGBoost, CatBoost, HistGradientBoosting, linear models, 44 scikit-learn estimators, and optional TabPFN v2. |
 | **Local web studio** | Upload data, queue runs, compare results, read reports, and submit to Kaggle. Standard library only; no Node or FastAPI. |
 | **Reproducible artifacts** | Config, folds, metrics, OOF predictions, report, state, and an offline package with SHA256 checksums. |
@@ -202,7 +202,7 @@ and ensembling. Two kinds exist:
 - **pipeline** — an executable, ordered list of feature blocks. New recipes
   should normally be pipelines.
 
-The catalog contains **45 recipes**: 16 presets and 29 pipelines. Examples:
+The catalog contains **55 recipes**: 16 presets and 39 pipelines. Examples:
 
 ```bash
 uv run kconv recipes

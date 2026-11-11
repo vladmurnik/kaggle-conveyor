@@ -1,0 +1,39 @@
+id: pipeline/kozodoi-hash-missing-numeric
+kind: pipeline
+derived_from: kozodoi/tabular
+title: Kozodoi hash-missing-numeric pipeline
+author: Nikita Kozodoi
+source: https://github.com/kozodoi/Kaggle_Home_Credit
+license: MIT
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "High-cardinality tables with sparse numeric signals and informative missingness."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, catboost]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: hash_encoding
+      params: {columns: auto, n_features: 32}
+    - type: missingness
+      params: {columns: auto, indicators: true, row_count: true, zero_count: true}
+    - type: numeric_interactions
+      params: {columns: auto, max_pairs: 6, operations: [product, ratio]}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "High-cardinality and missing-value workflow ideas from kozodoi/Kaggle_Home_Credit (MIT); hashing, missingness indicators, numeric interactions and fold-fitted encodings are original kconv implementations, no source code copied."

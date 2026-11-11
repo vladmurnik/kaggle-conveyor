@@ -12,11 +12,11 @@ from kconv.recipes import Recipe, RecipeBlock, RecipeDefaults, RecipePipeline, l
 
 def test_all_builtin_recipes_load() -> None:
     recipes = list_recipes()
-    assert len(recipes) == 45
+    assert len(recipes) == 55
     presets = [recipe for recipe in recipes if recipe.kind == "preset"]
     pipelines = [recipe for recipe in recipes if recipe.kind == "pipeline"]
     assert len(presets) == 16
-    assert len(pipelines) == 29
+    assert len(pipelines) == 39
     ids = {recipe.id for recipe in recipes}
     assert "pesnik/baseline" in ids
     assert "cdeotte/tabular" in ids
@@ -28,6 +28,10 @@ def test_all_builtin_recipes_load() -> None:
     assert "pipeline/kozodoi-high-cardinality" in ids
     assert "pipeline/sergeyshilin-contracts" in ids
     assert "pipeline/nyaggle-oof-ensemble" in ids
+    assert "pipeline/kconv-missing-row-profile" in ids
+    assert "pipeline/kaggle-ieee-time-group" in ids
+    assert "pipeline/kozodoi-hash-missing-numeric" in ids
+    assert "pipeline/kconv-modulo-anomaly" in ids
     assert "pipeline/ensemble-amazon-stack" in ids
     assert "pipeline/kconv-sklearn-diverse" in ids
     assert "pipeline/statsmaster-honest-cv" in ids

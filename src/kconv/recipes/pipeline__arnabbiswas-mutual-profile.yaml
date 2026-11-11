@@ -1,0 +1,36 @@
+id: pipeline/arnabbiswas-mutual-profile
+kind: pipeline
+derived_from: arnabbiswas1/staged
+title: Arnab Biswas mutual-profile pipeline
+author: Arnab Biswas
+source: https://github.com/arnabbiswas1/kaggle_pipeline_tps_aug_22
+license: Apache-2.0
+group: architecture
+tasks: [binary, multiclass, regression]
+best_for: "Staged feature engineering with row profiles and mutual-information selection for compact models."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+    - type: numeric_interactions
+      params: {columns: auto, max_pairs: 6, operations: [product, ratio, difference]}
+    - type: row_statistics
+      params: {stats: [mean, std, min, max]}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: mutual_info, max_features: 30}
+attribution: "Staged pipeline structure inspired by arnabbiswas1/kaggle_pipeline_tps_aug_22 (Apache-2.0); numeric interactions, row statistics, encoding and mutual-information selection are original kconv implementations, no source code copied."

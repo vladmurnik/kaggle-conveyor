@@ -11,7 +11,7 @@ from kconv.pipeline_presets import ALL_PIPELINES, PIPELINE_PRESETS, pipeline_pre
 def test_pipeline_presets_match_catalog() -> None:
     available = {pipeline.id for pipeline in list_pipelines(kind="pipeline")}
     assert set(ALL_PIPELINES) == available
-    assert len(ALL_PIPELINES) == len(available) == 29
+    assert len(ALL_PIPELINES) == len(available) == 39
 
     preset_ids = [preset.id for preset in PIPELINE_PRESETS]
     assert len(preset_ids) == len(set(preset_ids))

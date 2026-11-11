@@ -1,0 +1,47 @@
+id: pipeline/kaggle-ieee-time-group
+kind: pipeline
+derived_from: kaggle-ieee/fraud-pipeline
+title: IEEE fraud time-group pipeline
+author: Rob Mulla
+source: https://github.com/RobMulla/kaggle-ieee-fraud-detection
+license: Apache-2.0
+group: engineering
+tasks: [binary, multiclass, regression]
+best_for: "Grouped time-ordered tables that need past-only lags, rolling windows and group aggregates."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: weighted
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: time_series
+      params:
+        {
+          time_col: auto,
+          group_col: auto,
+          columns: auto,
+          lags: [1, 2],
+          windows: [3, 7],
+          stats: [mean, std],
+          include_elapsed: true,
+          include_diff: true,
+        }
+    - type: group_statistics
+      params: {group_col: auto, columns: auto, stats: [mean, std, count], max_columns: 8}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 20}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Grouped time-series and wide-table workflow ideas from Rob Mulla's kaggle-ieee-fraud-detection (Apache-2.0); past-only lags, rolling windows, group aggregates and fold-fitted encodings are original kconv implementations, no source code copied."

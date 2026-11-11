@@ -53,10 +53,10 @@ def test_model_catalog_api_filters() -> None:
 
 def test_pipeline_api() -> None:
     pipelines = list_pipelines()
-    assert len(pipelines) == 45
+    assert len(pipelines) == 55
     assert len(list_pipelines(kind="preset")) == 16
-    assert len(list_pipelines(kind="pipeline")) == 29
-    assert len(list_pipelines(group="ensemble")) == 19
+    assert len(list_pipelines(kind="pipeline")) == 39
+    assert len(list_pipelines(group="ensemble")) == 20
     assert {pipeline.id for pipeline in pipelines} >= {
         "kconv/linear-stack",
         "kconv/sklearn-diverse",
@@ -67,6 +67,10 @@ def test_pipeline_api() -> None:
         "pipeline/kozodoi-time-profile",
         "pipeline/kaggle-ieee-cluster-anomaly",
         "pipeline/kconv-unsupervised-profile",
+        "pipeline/ensemble-amazon-interaction-group",
+        "pipeline/kaggle-ieee-time-group",
+        "pipeline/knnfeat-cluster-anomaly",
+        "pipeline/kconv-modulo-anomaly",
     }
 
     pipeline = get_pipeline("kconv/linear-stack")

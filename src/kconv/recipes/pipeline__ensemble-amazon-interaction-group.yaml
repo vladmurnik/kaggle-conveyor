@@ -1,0 +1,37 @@
+id: pipeline/ensemble-amazon-interaction-group
+kind: pipeline
+derived_from: ensemble-amazon/stacking
+title: ensemble-amazon interaction-group stack
+author: kaz-Anova
+source: https://github.com/kaz-Anova/ensemble_amazon
+license: Apache-2.0
+group: ensemble
+tasks: [binary, multiclass, regression]
+best_for: "Stacked models that benefit from target-encoded categorical interactions plus group aggregates."
+defaults:
+  validation:
+    strategy: auto
+    n_splits: 5
+  models: [lgbm, xgb, catboost, logreg]
+  hpo:
+    enabled: false
+    trials: 20
+    timeout_sec: 600
+  ensemble:
+    method: stack
+    fallback: best_single
+pipeline:
+  blocks:
+    - type: base
+      params: {max_categories: 100}
+    - type: categorical_interaction
+      params: {columns: auto, max_pairs: 4, encoding: target}
+    - type: group_statistics
+      params: {group_col: auto, columns: auto, stats: [mean, std, count], max_columns: 8}
+    - type: target_encoding
+      params: {columns: auto, smoothing: 10}
+    - type: frequency_encoding
+      params: {columns: auto}
+    - type: feature_selection
+      params: {method: model_importance, max_features: 40}
+attribution: "Stacking and categorical-interaction ideas from kaz-Anova/ensemble_amazon (Apache-2.0); target-encoded interactions, group aggregates and stack implementation are original kconv, no source code copied."
