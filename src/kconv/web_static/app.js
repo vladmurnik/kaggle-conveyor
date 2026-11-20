@@ -38,6 +38,8 @@ const state = {
   prefsReady: false,
   prefsTimer: null,
   navObserver: null,
+  bars: null,
+  chartFocus: null,
   llm: {
     plan: null,
     busy: false,
@@ -2121,17 +2123,32 @@ function renderMetricCards(data) {
   }
 }
 
+function chartRatio(score, min, max, direction) {
+  if (!Number.isFinite(score) || !Number.isFinite(min) || !Number.isFinite(max) || min === max) return 1;
+  const ratio = direction === "minimize" ? (max - score) / (max - min) : (score - min) / (max - min);
+  return Math.max(0.04, Math.min(1, ratio));
+}
+
 function renderBars(data) {
   const container = $("#bars");
+  const meta = $("#bars-meta");
+  const expand = $("#bars-expand");
   container.replaceChildren();
+  state.bars = null;
+  if (meta) meta.textContent = "";
+  if (expand) expand.disabled = true;
   const blend = data.metrics && data.metrics.blend;
-  if (!blend) return;
+  if (!blend) {
+    closeChartModal();
+    return;
+  }
   let rows = (data.metrics.models || []).filter((row) => row.oof_score !== null && row.oof_score !== undefined);
   if (!rows.length && blend.model_scores) {
     rows = Object.entries(blend.model_scores).map(([name, score]) => ({ name, oof_score: score }));
   }
   if (!rows.length) {
     container.append(el("div", "hint", "Нет OOF-метрик для отображения."));
+    closeChartModal();
     return;
   }
   const direction = data.metrics.direction === "minimize" ? "minimize" : "maximize";
@@ -2141,19 +2158,167 @@ function renderBars(data) {
   rows.sort((a, b) => direction === "maximize" ? Number(b.oof_score) - Number(a.oof_score) : Number(a.oof_score) - Number(b.oof_score));
   rows.forEach((row, index) => {
     const score = Number(row.oof_score);
-    let ratio = 1;
-    if (Number.isFinite(score) && max !== min) {
-      ratio = direction === "maximize" ? (score - min) / (max - min) : (max - score) / (max - min);
-      ratio = Math.max(0.04, Math.min(1, ratio));
-    }
     const line = el("div", `bar-row ${index === 0 ? "best" : ""}`);
     line.append(el("span", "bar-name", row.name));
     const track = el("div", "bar-track");
     const fill = el("div", "bar-fill");
-    fill.style.width = `${Math.round(ratio * 100)}%`;
+    fill.style.width = `${Math.round(chartRatio(score, min, max, direction) * 100)}%`;
     track.append(fill);
     line.append(track, el("span", "bar-score", fmtScore(score)));
     container.append(line);
+  });
+
+  const metricName = data.metrics.metric || blend.metric || "score";
+  state.bars = {
+    title: "OOF по моделям",
+    subtitle: `${metricName} · ${direction === "maximize" ? "больше — лучше" : "меньше — лучше"}`,
+    metric: metricName,
+    direction,
+    rows: rows.map((row) => ({ name: row.name, score: Number(row.oof_score) })),
+    blend: blend.oof_score === null || blend.oof_score === undefined ? null : Number(blend.oof_score),
+  };
+  if (meta) meta.textContent = `${metricName} · моделей: ${rows.length}`;
+  if (expand) expand.disabled = false;
+  if (!$("#chart-modal").classList.contains("hidden")) renderChartModalBody();
+}
+
+function renderChartModalBody() {
+  const bars = state.bars;
+  const body = $("#chart-modal-body");
+  if (!bars || !body) return;
+  body.replaceChildren();
+  const values = bars.rows.map((row) => row.score).filter(Number.isFinite);
+  const min = values.length ? Math.min(...values) : 0;
+  const max = values.length ? Math.max(...values) : 0;
+  const best = bars.rows[0] || null;
+  const list = el("div", "chart-modal-bars");
+  bars.rows.forEach((row, index) => {
+    const line = el("div", `chart-row ${index === 0 ? "best" : ""}`);
+    line.append(el("span", "chart-rank", String(index + 1).padStart(2, "0")));
+    line.append(el("span", "chart-name", row.name));
+    const track = el("div", "chart-track");
+    const fill = el("div", "chart-fill");
+    fill.style.width = `${Math.round(chartRatio(row.score, min, max, bars.direction) * 100)}%`;
+    track.append(fill);
+    const delta = best && Number.isFinite(row.score) && Number.isFinite(best.score) ? row.score - best.score : null;
+    const deltaText = index === 0 ? "best" : delta === null ? "" : `${delta > 0 ? "+" : ""}${delta.toFixed(4)}`;
+    line.append(track, el("span", "chart-value", fmtScore(row.score)), el("span", "chart-delta", deltaText));
+    list.append(line);
+  });
+  body.append(list);
+  const axis = el("div", "chart-axis");
+  axis.append(el("span", "", `min ${fmtScore(min)}`), el("span", "", `max ${fmtScore(max)}`));
+  body.append(axis);
+
+  const blendText = bars.blend === null ? null : `blend ${fmtScore(bars.blend)}`;
+  $("#chart-modal-title").textContent = bars.title;
+  $("#chart-modal-kicker").textContent = bars.subtitle;
+  $("#chart-modal-meta").textContent = [bars.metric, `моделей: ${bars.rows.length}`, blendText].filter(Boolean).join(" · ");
+}
+
+function openChartModal() {
+  const bars = state.bars;
+  if (!bars || !bars.rows.length) {
+    toast("График появится после обучения.", true);
+    return;
+  }
+  renderChartModalBody();
+  const modal = $("#chart-modal");
+  state.chartFocus = document.activeElement;
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  $("#chart-modal-close").focus();
+}
+
+function exitChartFullscreen() {
+  if (!document.exitFullscreen) return;
+  try {
+    const result = document.exitFullscreen();
+    if (result && typeof result.catch === "function") result.catch(() => {});
+  } catch (_) {
+    /* some browsers throw when exiting a fullscreen they did not grant */
+  }
+}
+
+function closeChartModal() {
+  const modal = $("#chart-modal");
+  if (!modal || modal.classList.contains("hidden")) return;
+  if (document.fullscreenElement) exitChartFullscreen();
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+  syncChartFullscreenButton();
+  if (state.chartFocus && typeof state.chartFocus.focus === "function") state.chartFocus.focus();
+  state.chartFocus = null;
+}
+
+function syncChartFullscreenButton() {
+  const button = $("#chart-modal-full");
+  const panel = $(".chart-modal-panel");
+  if (!button || !panel) return;
+  const active = Boolean(document.fullscreenElement) || panel.classList.contains("chart-modal-wide");
+  button.textContent = active ? "Свернуть" : "На весь экран";
+  button.setAttribute("aria-pressed", String(active));
+}
+
+function toggleChartFullscreen() {
+  const panel = $(".chart-modal-panel");
+  if (!panel) return;
+  if (document.fullscreenElement) {
+    exitChartFullscreen();
+    return;
+  }
+  if (panel.requestFullscreen) {
+    try {
+      const result = panel.requestFullscreen();
+      if (result && typeof result.then === "function") {
+        result.then(() => syncChartFullscreenButton()).catch(() => {
+          panel.classList.toggle("chart-modal-wide");
+          syncChartFullscreenButton();
+        });
+      } else {
+        panel.classList.toggle("chart-modal-wide");
+        syncChartFullscreenButton();
+      }
+    } catch (_) {
+      panel.classList.toggle("chart-modal-wide");
+      syncChartFullscreenButton();
+    }
+    return;
+  }
+  panel.classList.toggle("chart-modal-wide");
+  syncChartFullscreenButton();
+}
+
+function initChartModal() {
+  const modal = $("#chart-modal");
+  if (!modal) return;
+  $("#bars-expand").addEventListener("click", openChartModal);
+  $("#chart-modal-close").addEventListener("click", closeChartModal);
+  $("#chart-modal-backdrop").addEventListener("click", closeChartModal);
+  $("#chart-modal-full").addEventListener("click", toggleChartFullscreen);
+  document.addEventListener("fullscreenchange", syncChartFullscreenButton);
+  document.addEventListener("keydown", (event) => {
+    if (modal.classList.contains("hidden")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeChartModal();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = $$("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])", modal)
+      .filter((node) => !node.disabled && node.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 }
 
@@ -2815,6 +2980,7 @@ function bindEvents() {
   window.addEventListener("scroll", updateDockVisibility, { passive: true });
   initSectionNav();
   initShortcuts();
+  initChartModal();
 }
 
 async function init() {

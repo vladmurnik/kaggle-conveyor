@@ -1646,3 +1646,159 @@ kbd {
   .run-dock { transition: none; }
   .section-nav a, .card { transition: none; }
 }
+
+/* ---------- Expandable run charts ---------- */
+.chart-block {
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(4, 8, 12, 0.32);
+}
+.chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.chart-title { color: var(--text); font-size: 12.5px; font-weight: 600; }
+.chart-sub { margin-left: 8px; color: var(--faint); font: 10.5px var(--mono); }
+.chart-head .button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+body.modal-open { overflow: hidden; }
+
+.chart-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.chart-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 7, 10, 0.72);
+  backdrop-filter: blur(6px);
+}
+.chart-modal-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(1040px, 100%);
+  max-height: calc(100vh - 48px);
+  padding: 18px 20px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #141c25, #0f151c);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+.chart-modal-panel.chart-modal-wide {
+  width: 100%;
+  max-width: none;
+  height: calc(100vh - 48px);
+  max-height: none;
+}
+.chart-modal-panel:fullscreen {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border: none;
+  border-radius: 0;
+  background: #0f151c;
+}
+.chart-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chart-modal-kicker {
+  color: var(--faint);
+  font: 10.5px var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.chart-modal-head h3 { margin: 4px 0 0; font-size: 18px; font-weight: 650; }
+.chart-modal-actions { display: flex; gap: 8px; flex: none; }
+.chart-modal-meta { margin-top: 6px; color: var(--muted); font: 11px var(--mono); }
+.chart-modal-body { margin-top: 14px; flex: 1; min-height: 0; overflow: auto; }
+.chart-modal-foot { margin-top: 10px; color: var(--faint); font-size: 11px; }
+
+.chart-modal-bars { display: flex; flex-direction: column; gap: 10px; }
+.chart-row {
+  display: grid;
+  grid-template-columns: 34px minmax(120px, 240px) minmax(0, 1fr) 86px 84px;
+  gap: 12px;
+  align-items: center;
+}
+.chart-rank { color: var(--faint); font: 10.5px var(--mono); }
+.chart-name {
+  color: var(--muted);
+  font: 12px var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chart-track {
+  position: relative;
+  height: 16px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.045);
+  overflow: hidden;
+}
+.chart-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 calc(25% - 1px),
+    rgba(255, 255, 255, 0.06) calc(25% - 1px) 25%
+  );
+}
+.chart-fill {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #215c4f, var(--mint));
+  transition: width 0.4s ease;
+}
+.chart-value {
+  color: var(--text);
+  font: 12px var(--mono);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.chart-delta { color: var(--faint); font: 10.5px var(--mono); text-align: right; }
+.chart-row.best .chart-name,
+.chart-row.best .chart-value,
+.chart-row.best .chart-delta { color: var(--mint); }
+.chart-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: var(--faint);
+  font: 10px var(--mono);
+}
+
+@media (max-width: 760px) {
+  .chart-modal { padding: 10px; }
+  .chart-modal-panel { padding: 14px; border-radius: 14px; }
+  .chart-row { grid-template-columns: 24px minmax(80px, 130px) minmax(0, 1fr) 70px; gap: 8px; }
+  .chart-delta { display: none; }
+  .chart-axis { font-size: 9.5px; }
+}
+
+@media (max-width: 480px) {
+  .chart-name { font-size: 10.5px; }
+  .chart-modal-actions #chart-modal-full { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-fill { transition: none; }
+}

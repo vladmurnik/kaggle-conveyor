@@ -1607,3 +1607,33 @@ def test_web_ux_scaffolding_is_present() -> None:
     assert ".section-nav" in styles
     assert ".run-dock" in styles
     assert ":focus-visible" in styles
+
+
+def test_web_chart_modal_scaffolding_is_present() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1] / "src" / "kconv" / "web_static"
+    html = (root / "index.html").read_text(encoding="utf-8")
+    script = (root / "app.js").read_text(encoding="utf-8")
+    styles = (root / "app.css").read_text(encoding="utf-8")
+
+    for anchor in (
+        'id="bars-expand"',
+        'id="bars-meta"',
+        'id="chart-modal"',
+        'id="chart-modal-backdrop"',
+        'id="chart-modal-body"',
+        'id="chart-modal-close"',
+        'id="chart-modal-full"',
+    ):
+        assert anchor in html, anchor
+
+    assert "function openChartModal()" in script
+    assert "function closeChartModal()" in script
+    assert "function toggleChartFullscreen()" in script
+    assert "function initChartModal()" in script
+    assert "initChartModal();" in script
+
+    assert ".chart-modal-panel" in styles
+    assert ".chart-row" in styles
+    assert ":fullscreen" in styles

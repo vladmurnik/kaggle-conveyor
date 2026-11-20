@@ -539,7 +539,13 @@ ollama pull qwen2.5-coder:7b</code></pre>
         </div>
         <div id="results-body" class="hidden">
           <div class="metric-cards" id="metric-cards"></div>
-          <div class="bars" id="bars"></div>
+          <div class="chart-block">
+            <div class="chart-head">
+              <div class="chart-title">OOF по моделям <span class="chart-sub" id="bars-meta"></span></div>
+              <button class="button ghost compact" id="bars-expand" type="button" disabled>Развернуть</button>
+            </div>
+            <div class="bars" id="bars"></div>
+          </div>
           <div class="blend-note" id="blend-note"></div>
           <div class="downloads" id="downloads">
             <a class="button ghost hidden" id="dl-sub" href="#">Скачать submission</a>
@@ -683,6 +689,25 @@ ollama pull qwen2.5-coder:7b</code></pre>
       <button class="button ghost compact" id="dock-results" type="button">К результатам</button>
       <button class="button primary compact" id="dock-run" type="button">Запустить</button>
       <button class="button danger compact" id="dock-stop" type="button" disabled>Стоп</button>
+    </div>
+  </div>
+
+  <div class="chart-modal hidden" id="chart-modal" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title" aria-hidden="true">
+    <div class="chart-modal-backdrop" id="chart-modal-backdrop"></div>
+    <div class="chart-modal-panel" role="document">
+      <div class="chart-modal-head">
+        <div>
+          <div class="chart-modal-kicker" id="chart-modal-kicker">OOF · прогон</div>
+          <h3 id="chart-modal-title">OOF по моделям</h3>
+        </div>
+        <div class="chart-modal-actions">
+          <button class="button ghost compact" id="chart-modal-full" type="button" aria-pressed="false">На весь экран</button>
+          <button class="button ghost compact" id="chart-modal-close" type="button" aria-label="Закрыть график">Закрыть</button>
+        </div>
+      </div>
+      <div class="chart-modal-meta" id="chart-modal-meta"></div>
+      <div class="chart-modal-body" id="chart-modal-body"></div>
+      <div class="chart-modal-foot">Esc — закрыть · клик по фону — закрыть</div>
     </div>
   </div>
 
